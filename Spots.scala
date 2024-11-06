@@ -9,40 +9,31 @@ final case class Spots(
   // scribe.debug("@@@ case class Spots Start")
 
   def calculatePossibleMoves(model: FlicFlacGameModel): Spots =
-    scribe.debug("@@@ Spots calculatePossibleMoves")
 
     val resultingSpots: Spots = Spots(Set.empty)
     FlicFlacGameModel.findPieceSelected(model) match
       case Some(piece) =>
-        scribe.debug("@@@ Spots finds a selected piece")
         calculateSpots(model, piece)
 
       case None =>
-        scribe.debug("@@@ Spots does not find a selected piece")
         Spots(Set.empty)
     end match
   end calculatePossibleMoves
 
   def calculateSpots(model: FlicFlacGameModel, piece: Piece): Spots =
-    scribe.debug("@@@ Spots calculateSpots start")
     val bBlocks = ((piece.pieceShape == BLOCK) && (model.gameState == GameState.BLOCK_TURN))
     val bCylinders = ((piece.pieceShape == CYLINDER) && (model.gameState == GameState.CYLINDER_TURN))
     if bBlocks || bCylinders then
       if Piece.moved(piece) then
-        scribe.debug("@@@ calculateSpots piece moved")
         model.pieces.modelPieces.find(p => (p.pCurPos == piece.pTurnStartPos)) match
           case Some(p) =>
             Spots(Set.empty)
           case None =>
             Spots(Set((piece.pTurnStartPos.x, piece.pTurnStartPos.y))) // starting position only
         end match
-      else
-        scribe.debug("@@@ calculateSpots piece not moved @ " + piece.pCurPos)
-        spotify(model: FlicFlacGameModel, piece: Piece)
+      else spotify(model: FlicFlacGameModel, piece: Piece)
       end if
-    else
-      scribe.debug("@@@ calculateSpots out of turn " + model.gameState)
-      Spots(Set.empty)
+    else Spots(Set.empty)
     end if
   end calculateSpots
 
@@ -58,8 +49,6 @@ final case class Spots(
     val s = qrs._3
 
     if piece.pCurPos == piece.pHomePos then
-
-      scribe.debug("@@@ Spotify TP1")
 
       // we have a piece in the home position so display unoccupied starting places
       var ss1 = Set.empty[(Int, Int)]
@@ -84,16 +73,14 @@ final case class Spots(
       end match
 
       val ss2 = ss1.filter { case (aX, aY) => model.hexBoard3.isThisHexFree(Point(aX, aY), vPieces) }
-      scribe.debug("@@@ spotify Home free hex count: " + ss2.size)
+
       Spots(ss2)
     else if piece.bMoved then
-      scribe.debug("@@@ Spotify TP2")
+
       // we have a piece that has already moved this turn
       val ss1 = Set((piece.pTurnStartPos.x, piece.pTurnStartPos.y))
       Spots(ss1)
     else
-      scribe.debug("@@@ Spotify TP3")
-
       // we have a piece on the board trying to move so calculate valid moves from Ring1,Ring2,Ring3
       // Inner Ring
 

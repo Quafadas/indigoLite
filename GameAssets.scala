@@ -26,11 +26,11 @@ object GameAssets:
 
   /* Game rectangle found by experimentation.
      This rectangle dimensions also laid out in html file
-     This is the "master" setting for the game dimensions 
+     This is the "master" setting for the game dimensions
      for all of the scala code
-  */
+   */
 
-  val GameSceneDimensions = Rectangle(0, 0, 1580, 1300)
+  lazy val GameSceneDimensions = Rectangle(0, 0, 1580, 1300)
 
   def get(): Set[AssetType] =
     Set(

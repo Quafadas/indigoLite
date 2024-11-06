@@ -4,9 +4,6 @@ import indigo.*
 import indigoextras.ui.*
 
 object FlicFlacStartupData:
-
-  scribe.debug("@@@ Object FlicFlacStartupData START")
-
   def initialise(
       flicFlacBootData: FlicFlacBootData
   ): Outcome[Startup[FlicFlacStartupData]] =
@@ -25,7 +22,6 @@ object FlicFlacStartupData:
         buttonResultsAsset = GameAssets.buttonResultsAssets(1.0)
       )
     )
-  scribe.debug("@@@ Object FlicFlacStartupData FINISH")
 end FlicFlacStartupData
 
 final case class FlicFlacStartupData(flicFlacBootData: FlicFlacBootData, staticAssets: StaticAssets)
@@ -39,26 +35,23 @@ final case class StaticAssets(
 )
 
 final case class FlicFlacBootData(pixelWidth: Int, pixelHeight: Int, viewport: GameViewport):
-  val width = pixelWidth
-  val height = pixelHeight
-  val gameViewPort = viewport
+  lazy val width = pixelWidth
+  lazy val height = pixelHeight
+  lazy val gameViewPort = viewport
 end FlicFlacBootData
 
 object FlicFlacBootData:
-  scribe.debug("@@@ Object FlicFlacBootData START")
-
   def create(w: Int, h: Int): FlicFlacBootData =
     FlicFlacBootData(w, h, GameViewport(w, h))
-
-  scribe.debug("@@@ Object FlicFlacBootData FINISH")
 end FlicFlacBootData
 
 object FlicFlacConfig:
-  scribe.debug("@@@ Object FlicFlacConfig START")
-  val config: GameConfig =
+
+  lazy val config: GameConfig =
+    // scribe.debug("@@@ Object FlicFlacConfigscribe.debug("@@@ Object FlicFlacConfig FINISH")")
     GameConfig(
       viewport = GameViewport(GameAssets.GameSceneDimensions.width, GameAssets.GameSceneDimensions.height),
-      frameRateLimit = Option(FPS.`30`),  // this is the slowest FPS indigo game engine allows ... JP 27/08/24
+      frameRateLimit = Option(FPS.`30`), // this is the slowest FPS indigo game engine allows ... JP 27/08/24
       clearColor = RGBA.fromHexString("#000000"),
       magnification = 1,
       transparentBackground = false,
@@ -75,5 +68,5 @@ object FlicFlacConfig:
         disableContextMenu = true
       )
     )
-  scribe.debug("@@@ Object FlicFlacConfig FINISH")
+
 end FlicFlacConfig

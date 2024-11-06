@@ -6,6 +6,7 @@ import io.circe.Decoder
 import io.circe.syntax.*
 import io.circe.parser.decode
 import game.Piece.pieceShape
+import scribe.*
 
 final case class FlicFlacGameModel(
     ourName: String,
@@ -34,7 +35,12 @@ enum GameState:
 end GameState
 
 object FlicFlacGameModel:
-  scribe.debug("@@@ Object FlicFlacGameModel Start")
+  val configLoggerHere = "@@@ updateFromPointers START".logger
+    // .withMinimumLevel(
+    //   Level.Trace
+    // ) // uncomment this to get the logging below, config should onl apply in this scope.
+    .replace()
+  scribe.trace("@@@ Object FlicFlacGameModel Start")
   var iTick = 0
 
   def creation(playerParams: FlicFlacPlayerParams): FlicFlacGameModel =
@@ -154,7 +160,7 @@ object FlicFlacGameModel:
   end modifyPossibleMoves
 
   def reset(previousModel: FlicFlacGameModel): FlicFlacGameModel =
-    scribe.debug("@@@ Reset model")
+    scribe.trace("@@@ Reset model")
 
     val sOurName = previousModel.ourName
     val sOppoName = previousModel.oppoName
@@ -187,15 +193,16 @@ object FlicFlacGameModel:
 
     // FIXME reading PlayerParams here is just a test
     val playerParams = FlicFlacPlayerParams.retrieve()
-    scribe.debug("@@@ ScoreToWin: " + playerParams.playPamsScoreToWin)
+    scribe.trace("@@@ ScoreToWin: " + playerParams.playPamsScoreToWin)
 
     val cacheOrNew = decode[FlicFlacGameModel](org.scalajs.dom.window.localStorage.getItem("FlicFlacStats")) match
       case Right(model: FlicFlacGameModel) =>
         // FIXME we should check for version number here and goto create if mismatch
-        scribe.debug("@@@ Restored model")
+        scribe.trace(s"@@@ Restored model : $model")
         FlicFlacGameModel.creation(playerParams)
-      case Left(_) =>
-        scribe.debug("@@@ Created model")
+      case Left(ex) =>
+        scribe.error("@@@ Created model")
+        scribe.error(ex.toString)
         FlicFlacGameModel.creation(playerParams)
     cacheOrNew
   end retrieve

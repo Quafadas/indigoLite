@@ -22,10 +22,10 @@ object FlicFlacPlayerParams:
     val cacheConfigOrDefault =
       decode[FlicFlacPlayerParams](org.scalajs.dom.window.localStorage.getItem("FlicFlacPlayerParams")) match
         case Right(playerParams: FlicFlacPlayerParams) =>
-          scribe.debug(s"@@@ Retrieved PlayerParams $playerParams")
           playerParams
-        case Left(_) =>
+        case Left(ex) =>
           scribe.error("@@@ Retrieve PlayerParams failed - assert default")
+          scribe.error(ex.toString)
           FlicFlacPlayerParams(
             "OurName", // ..... Our name
             "OppoName", // .... Opponents name

@@ -159,6 +159,12 @@ case class FlicFlacGame(
         .addGlobalEvents(SceneEvent.JumpTo(SceneGame.name))
         .addGlobalEvents(ViewportResize(flicFlacViewModel.theGameViewPort))
 
+    case ButtonStoreParametersEvent =>
+      scribe.debug("@@@ Main-ButtonGameEvent")
+      Outcome(flicFlacViewModel)
+        .addGlobalEvents(SceneEvent.JumpTo(SceneGame.name))
+        .addGlobalEvents(ViewportResize(flicFlacViewModel.theGameViewPort))
+
     case _ =>
       Outcome(flicFlacViewModel)
   end updateViewModel
@@ -217,4 +223,5 @@ case object ButtonParamsEvent extends GlobalEvent
 case object ButtonPlusEvent extends GlobalEvent
 case object ButtonMinusEvent extends GlobalEvent
 case object ButtonTurnEvent extends GlobalEvent
+case object ButtonStoreParametersEvent extends GlobalEvent
 case object SubSysGameUpdate extends GlobalEvent

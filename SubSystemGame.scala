@@ -61,13 +61,13 @@ final case class SSGame(initialMessage: String) extends SubSystem[FlicFlacGameMo
     case WebRtcEvent.MakePeerConnection =>
       scribe.debug("@@@ SubSystemGame WebRtcEvent.MakePeerConnection")
       println("MakePeerConnection")
-      println(s"data ${context.reference}")
+      println(s"Sending Peer our name: ${context.reference.ourName}")
       peer = Some(Peer(id = context.reference.ourName))
       peer.foreach(
         _.on(
           "connection",
           (c: DataConnection) =>
-            scribe.debug(s"@@@ SubSystemGame We made a connection! with $c")
+            scribe.debug(s"@@@ SubSystemGame We made a connection! with ${js.JSON.stringify(c.peerConnection)}")
             conn = Some(c)
             c.on(
               "data",
@@ -88,7 +88,7 @@ final case class SSGame(initialMessage: String) extends SubSystem[FlicFlacGameMo
         )
       )
       peer.foreach { p =>
-        scribe.info(s"@@@ SubSystemGame Connecting to ${context.reference.oppoName}")
+        scribe.info(s"@@@ SubSystemGame try to connect to ${context.reference.oppoName}")
         val dataConn = p.connect(context.reference.oppoName)
         conn = Some(dataConn)
       }
