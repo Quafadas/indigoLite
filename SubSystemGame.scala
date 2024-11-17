@@ -98,7 +98,9 @@ final case class SSGame(initialMessage: String) extends SubSystem[FlicFlacGameMo
       latestUpdate.fold {
         Outcome(())
       } { ffgm =>
-        Outcome(()).addGlobalEvents(WebRtcEvent.RecievedData(ffgm))
+        val out = Outcome(()).addGlobalEvents(WebRtcEvent.RecievedData(ffgm))
+        latestUpdate = None
+        out
       }
   }
 
