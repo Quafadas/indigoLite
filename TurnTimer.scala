@@ -29,11 +29,25 @@ object TurnTimer:
     end if
   end update
 
+  def isActive(tt: TurnTimer): Boolean =
+    if (tt.iThisTurnTime == 0) && (tt.iThisTurnExpires == 0) then 
+      false
+    else
+      true
+    end if
+  end isActive
+
   def expired(tt: TurnTimer): Boolean =
-    (tt.iThisTurnTime >= tt.iThisTurnExpires)
+    if (tt.iThisTurnTime == 0) || (tt.iThisTurnExpires == 0) then
+      false
+    else if (tt.iThisTurnTime >= tt.iThisTurnExpires) then
+      true
+    else
+      false
+    end if
   end expired
 
-  def show(model: FlicFlacGameModel): SceneUpdateFragment =
+  def show(model: FlicFlacGameModel): Layer =
     // all measurements before scaling ...
     // for 0% ...
     // cap part is 25 high ...... and starts-ends at (70-95)
@@ -59,19 +73,36 @@ object TurnTimer:
 
     val T: Double = ((1170 * iTimeSpent) / iTotalTime) + 70
 
-    val dSF = model.scalingFactor
-    val scalableX = GameAssets.GameSceneDimensions.right - model.hexBoard3.pBase.x - 120
-    val iSliderXPos = (math.round(scalableX * dSF)).toInt + model.hexBoard3.pBase.x
+    val dSF = hexBoard4.scalingFactor
+    val scalableX = GameAssets.GameSceneDimensions.right - hexBoard4.pBase.x - 120
+    val iSliderXPos = (math.round(scalableX * dSF)).toInt + hexBoard4.pBase.x
     val iBodyTop = (math.round(95 * dSF)).toInt
     val iCapTop = (math.round(T * dSF)).toInt
     val iWidth = (math.round(52 * dSF)).toInt // changed from 50 to 52 to eliminate sporadic veritcal lines
 
-    val frag1 = SceneUpdateFragment(GameAssets.gTimeSliderBody(dSF).moveTo(iSliderXPos, iBodyTop))
-    val frag2 = SceneUpdateFragment(GameAssets.gTimeSliderTop(dSF).moveTo(iSliderXPos, iCapTop))
-    val r3 = Rectangle(iSliderXPos, 0, iWidth, iCapTop)
-    val frag3 = SceneUpdateFragment(Shape.Box(r3, Fill.Color(RGBA.White)))
+    val bCylinder = (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == CYLINDER)
+    val bBlock = (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == BLOCK)
+    
+    val content1 = 
+      if (bCylinder == true) || (bBlock == true) then
+        Layer.Content(GameAssets.gTimeSliderActiveBody(dSF).moveTo(iSliderXPos, iBodyTop))
+      else
+        Layer.Content(GameAssets.gTimeSliderInactiveBody(dSF).moveTo(iSliderXPos, iBodyTop))
+      end if
 
-    frag1 |+| frag2 |+| frag3
+    val content2 = 
+      if (bCylinder == true) || (bBlock == true) then     
+        Layer.Content(GameAssets.gTimeSliderActiveTop(dSF).moveTo(iSliderXPos, iCapTop))
+      else
+        Layer.Content(GameAssets.gTimeSliderInactiveTop(dSF).moveTo(iSliderXPos, iCapTop))
+      end if
+
+    val r3 = Rectangle(iSliderXPos, 0, iWidth, iCapTop)
+    val content3 = Layer.Content(Shape.Box(r3, Fill.Color(RGBA.White)))
+    val content4 = content1 |+| content2 |+| content3
+
+    content4
   end show
 
 end TurnTimer
+//          |+| SceneUpdateFragment(LayerKeys.Background -> Layer.Content(Batch(textGameState)))

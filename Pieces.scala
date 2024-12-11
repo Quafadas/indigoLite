@@ -75,10 +75,10 @@ final case class Pieces(
 
   /* paint draws the 12 pieces
    */
-  def paint(model: FlicFlacGameModel, fS: Double, bBlinkOn: Boolean, optDragPos: Option[Point]): SceneUpdateFragment =
-    var frag = SceneUpdateFragment.empty
+  def paint(model: FlicFlacGameModel, fS: Double, bBlinkOn: Boolean, optDragPos: Option[Point]): Layer =
+    var layerPieces = Layer.empty
 
-    val pB = model.hexBoard3.pBase // extract GridBasePoint for later
+    val pB = hexBoard4.pBase // extract GridBasePoint for later
 
     // first draw all the unselected pieces ...
 
@@ -114,9 +114,9 @@ final case class Pieces(
       end bShow
 
       if Piece.selected(p) == false && bShow == true then
-        val pPos = model.hexBoard3.getXpYp(pSrc)
-        val newFrag = SceneUpdateFragment(Layer(layer.moveTo(pB + pPos).scaleBy(fS, fS)))
-        frag = frag |+| newFrag
+        val pPos = hexBoard4.getXsYs(pSrc)
+        val newLayer = Layer(layer.moveTo(pB + pPos).scaleBy(fS, fS))
+        layerPieces = layerPieces |+| newLayer
       end if
     end for
     // second draw the selected piece if it exists
@@ -130,16 +130,16 @@ final case class Pieces(
           case Some(pos) =>
             val pC = Point(((PieceAssets.gWidth * fS) / 2).toInt, ((PieceAssets.gHeight * fS) / 2).toInt)
             val pPos = pos - pC
-            val newFrag = SceneUpdateFragment(Layer(layer.scaleBy(fS, fS).moveTo(pPos)))
-            frag = frag |+| newFrag
+            val newLayer = Layer(layer.scaleBy(fS, fS).moveTo(pPos))
+            layerPieces = layerPieces |+| newLayer
           case None =>
-            val pPos = model.hexBoard3.getXpYp(pSrc)
-            val newFrag = SceneUpdateFragment(Layer(layer.moveTo(pB + pPos).scaleBy(fS, fS)))
-            frag = frag |+| newFrag
+            val pPos = hexBoard4.getXsYs(pSrc)
+            val newLayer = Layer(layer.moveTo(pB + pPos).scaleBy(fS, fS))
+            layerPieces = layerPieces |+| newLayer
         end match
     end for
 
-    frag
+    layerPieces
   end paint
 
 end Pieces

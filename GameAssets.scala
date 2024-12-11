@@ -21,6 +21,8 @@ object GameAssets:
   val spAssetPath = "assets/ScorePanelx50.png"
   val tsAssetName = "timeSlider"
   val tsAssetPath = "assets/TimeSlider.png"
+  val pmAssetName = "paramsPanel"
+  val pmAssetPath = "assets/ParamsPanelx50.png"
 
   scribe.debug("@@@ Object GameAssets START")
 
@@ -40,20 +42,12 @@ object GameAssets:
       AssetType.Image(AssetName(blAssetName), AssetPath(blAssetPath)),
       AssetType.Image(AssetName(cnAssetName), AssetPath(cnAssetPath)),
       AssetType.Image(AssetName(spAssetName), AssetPath(spAssetPath)),
-      AssetType.Image(AssetName(tsAssetName), AssetPath(tsAssetPath))
+      AssetType.Image(AssetName(tsAssetName), AssetPath(tsAssetPath)),
+      AssetType.Image(AssetName(pmAssetName), AssetPath(pmAssetPath))
     )
 
   def gHex(sf: Double): Graphic[Material.ImageEffects] =
-    if (sf < 0.25) || (sf > 1.0) then
-      // FIXME we should not need this trap in the end
-      scribe.error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-      scribe.error("@@@ BAD sf:" + sf)
-      scribe.error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-      Graphic(Rectangle(0, 0, 91, 81), 2, Material.ImageEffects(AssetName(hxAssetName))) // .scaleBy(sf,sf)
-    else
-      // valid scale factor
-      Graphic(Rectangle(0, 0, 91, 81), 2, Material.ImageEffects(AssetName(hxAssetName))).scaleBy(sf, sf)
-    end if
+    Graphic(Rectangle(0, 0, 91, 81), 2, Material.ImageEffects(AssetName(hxAssetName))).scaleBy(sf, sf)
   end gHex
 
   def gSpot(sf: Double): Graphic[Material.ImageEffects] =
@@ -61,17 +55,36 @@ object GameAssets:
       .withCrop(100, 0, 91, 81)
       .scaleBy(sf, sf)
 
-  def gScorePanel(sf: Double): Graphic[Material.ImageEffects] =
+  def gScorePanelBlinkOff(sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(0, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName)))
 
-  def gTimeSliderBody(sf: Double): Graphic[Material.ImageEffects] =
-    Graphic(Rectangle(0, 0, 50, 1220), 3, Material.ImageEffects(AssetName(tsAssetName)))
+  def gScorePanelBlinkCylinder(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(250, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName)))
+
+  def gScorePanelBlinkBlock (sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(500, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName)))
+
+  def gParamsPanel(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(0, 0, 250, 425), 3, Material.ImageEffects(AssetName(pmAssetName)))
+
+  def gTimeSliderActiveBody(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(0, 0, 150, 1220), 3, Material.ImageEffects(AssetName(tsAssetName)))
       .withCrop(0, 25, 50, 1195)
       .scaleBy(sf, sf)
 
-  def gTimeSliderTop(sf: Double): Graphic[Material.ImageEffects] =
-    Graphic(Rectangle(0, 0, 50, 1220), 3, Material.ImageEffects(AssetName(tsAssetName)))
+  def gTimeSliderActiveTop(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(0, 0, 150, 1220), 3, Material.ImageEffects(AssetName(tsAssetName)))
       .withCrop(0, 0, 50, 25)
+      .scaleBy(sf, sf)
+
+  def gTimeSliderInactiveBody(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(0, 0, 150, 1220), 3, Material.ImageEffects(AssetName(tsAssetName)))
+      .withCrop(100, 25, 50, 1195)
+      .scaleBy(sf, sf)
+
+  def gTimeSliderInactiveTop(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(0, 0, 150, 1220), 3, Material.ImageEffects(AssetName(tsAssetName)))
+      .withCrop(100, 0, 50, 25)
       .scaleBy(sf, sf)
 
   // Check FlacFont.txt for details

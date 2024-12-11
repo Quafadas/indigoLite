@@ -2,6 +2,7 @@ package game
 
 import indigo.*
 import indigo.scenes.*
+import scala.scalajs.js.annotation.JSExportTopLevel
 import indigoextras.ui.*
 import indigo.shared.assets.AssetType
 import indigo.shared.scenegraph.SceneUpdateFragment
@@ -17,19 +18,17 @@ import tyrian.TyrianSubSystem
 import cats.effect.IO
 import tyrian.TyrianIndigoBridge
 
-// *******************************************
-// Outstanding issues ...ViewModel.initialViewModel
-// Browser refresh resets game
-// Remove scale factor from Right Mouse Button
-// Support Scenes
-// Brown Area for Home & perhaps boarder ?
-// Rework to ViewModelControl
-// *******************************************
+object LayerKeys:
+  val Background: BindingKey = BindingKey("Background")
+  val Middleground: BindingKey = BindingKey("Middleground")
+  val ForegroundHighL: BindingKey = BindingKey("ForegroundHighL")
+  val ForegroundSpots: BindingKey = BindingKey("ForegroundSpots")
+  val ForegroundPieces: BindingKey = BindingKey("ForegroundPieces")
+  val Overlay: BindingKey = BindingKey("Overlay")
 
-// gameSize can be one of 2,3,4,5,6 and is the number of major hexagons across one side where ...
-// ... a major hexagon is ring of 6 hexagons, with a central 7th black hexagon
-//val gameSize = 2 // <<<<<<<<<<<<<<<<<<<<<<<
-//val boardBasePoint : Point = Point(400,50)  // where the (inisible) top left hand corner of the hex grid board is positioned
+@JSExportTopLevel("IndigoGame")
+
+val hexBoard4 = new HexBoard4()
 
 case class FlicFlacGame(
     tyrianSubSystem: TyrianSubSystem[IO, Int, FlicFlacGameModel]
@@ -55,54 +54,32 @@ case class FlicFlacGame(
   val assets: Set[AssetType] =
     GameAssets.get()
 
-  val eventFilters: EventFilters =
-    EventFilters.Permissive
-
-  def setup(
-      flicFlacBootData: FlicFlacBootData,
-      assetCollection: AssetCollection,
-      dice: Dice
-  ): Outcome[Startup[FlicFlacStartupData]] =
-    scribe.debug("@@@ FlicFlacMain-setup()")
-    val outCome = FlicFlacStartupData.initialise(flicFlacBootData)
-    outCome
-  end setup
-
-  def initialModel(flicFlacStartupData: FlicFlacStartupData): Outcome[FlicFlacGameModel] =
-    scribe.debug("@@@ FlicFlacMain-initialModel()")
-    val cachedParamsOrNew = FlicFlacPlayerParams.retrieve()
-    val newTurnTime = cachedParamsOrNew.playPamsTurnTime
-    val newCaptorsTime = cachedParamsOrNew.playPamsCaptorsTime
-    val newTT = TurnTimer(newTurnTime, newCaptorsTime)
-    val cachedGameOrNew = FlicFlacGameModel.retrieve()
-    val updatedGame = cachedGameOrNew.copy(turnTimer = newTT)
-    Outcome(updatedGame)
-  end initialModel
-
   def initialScene(flicFlacBootData: FlicFlacBootData): Option[SceneName] =
     scribe.debug("@@@ FlicFlacMain-initialScene()")
-    Some(SceneGame.name)
+    //Some(SceneParams.name)
+    None
   end initialScene
-
-  // JP 30/06/24
-  // To get the hexboard back as the main screen, comment out the populated "NonEmptyList" and ...
-  // restore the line NonEmptyList(Scene.empty)
 
   def scenes(
       flicFlacBootData: FlicFlacBootData
   ): NonEmptyList[Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacViewModel]] =
     scribe.debug("@@@ FlicFlacMain-scenes()")
-    NonEmptyList(SceneGame)
+    NonEmptyList(SceneParams, SceneGame)
   end scenes
+
+  val eventFilters: EventFilters =
+    EventFilters.Permissive
 
   def boot(flags: Map[String, String]): Outcome[BootResult[FlicFlacBootData, FlicFlacGameModel]] =
     scribe.debug("@@@ FlicFlacMain-boot")
     scribe.debug("@@@ BootFlags: " + flags)
     val width = flags("width").toInt
     val height = flags("height").toInt
+    val name1: String = flags("name1")
+    val name2: String = flags("name2")
     Outcome {
       val flicFlacBootData: FlicFlacBootData =
-        FlicFlacBootData.create(width, height)
+        FlicFlacBootData.create(width, height, name1, name2)
         // ViewConfig.default
 
       val config =
@@ -114,9 +91,21 @@ case class FlicFlacGame(
 
       BootResult(config, flicFlacBootData)
         .withAssets(assets)
-        .withSubSystems(tyrianSubSystem)
+        .withSubSystems(tyrianSubSystem, SSPeerJS("SubSystemPeerJS"))
     }
   end boot
+
+  def initialModel(flicFlacStartupData: FlicFlacStartupData): Outcome[FlicFlacGameModel] =
+    scribe.debug("@@@ FlicFlacMain-initialModel()")
+    val cachedParamsOrNew = FlicFlacPlayerParams.getParams(flicFlacStartupData)
+    scribe.debug(s"@@@ PlayerParams: $cachedParamsOrNew")
+    val newTurnTime = cachedParamsOrNew.playPams4_TurnTime
+    val newCaptorsTime = cachedParamsOrNew.playPams5_CaptorsTime
+    val newTT = TurnTimer(newTurnTime, newCaptorsTime)
+    val cachedGameOrNew = FlicFlacGameModel.retrieve(flicFlacStartupData)
+    val updatedGame = cachedGameOrNew.copy(turnTimer = newTT)
+    Outcome(updatedGame).addGlobalEvents(WebRtcEvent.MakePeerEntity)
+  end initialModel
 
   def initialViewModel(
       flicFlacStartupData: FlicFlacStartupData,
@@ -126,6 +115,7 @@ case class FlicFlacGame(
     val w = flicFlacStartupData.flicFlacBootData.gameViewPort.width
     val h = flicFlacStartupData.flicFlacBootData.gameViewPort.height
     val staticAssets = flicFlacStartupData.staticAssets
+
     Outcome(
       FlicFlacViewModel(
         staticAssets,
@@ -134,6 +124,25 @@ case class FlicFlacGame(
       )
     )
   end initialViewModel
+
+  def setup(
+      flicFlacBootData: FlicFlacBootData,
+      assetCollection: AssetCollection,
+      dice: Dice
+  ): Outcome[Startup[FlicFlacStartupData]] =
+    scribe.debug("@@@ FlicFlacMain-setup()")
+    val outCome = FlicFlacStartupData.initialise(flicFlacBootData)
+    outCome
+  end setup
+
+  def updateModel(
+      context: FrameContext[FlicFlacStartupData],
+      flicFlacGameModel: FlicFlacGameModel
+  ): GlobalEvent => Outcome[FlicFlacGameModel] =
+
+    case _ =>
+      Outcome(flicFlacGameModel)
+  end updateModel
 
   def updateViewModel(
       context: FrameContext[FlicFlacStartupData],
@@ -147,7 +156,6 @@ case class FlicFlacGame(
       val w = gameViewPort.width
       val h = gameViewPort.height
       scribe.debug("@@@ FlicFlacMain-updateViewModel ViewportResize w:h " + w + ":" + h)
-      // flicFlacGameModel.hexBoard3.calculateXpYp(1.0) // FIXME this needs to be immutable!!!
       Outcome(flicFlacViewModel.copy(theGameViewPort = gameViewPort))
 
     case ButtonPlayEvent =>
@@ -160,23 +168,21 @@ case class FlicFlacGame(
       Outcome(flicFlacViewModel)
   end updateViewModel
 
-  def updateModel(
-      context: FrameContext[FlicFlacStartupData],
-      flicFlacGameModel: FlicFlacGameModel
-  ): GlobalEvent => Outcome[FlicFlacGameModel] =
-
-    case _ =>
-      Outcome(flicFlacGameModel)
-  end updateModel
-
   def present(
       context: FrameContext[FlicFlacStartupData],
       flicFlacGameModel: FlicFlacGameModel,
       flicFlacViewModel: FlicFlacViewModel
-  ): Outcome[SceneUpdateFragment] = Outcome {
-
-    SceneUpdateFragment.empty
-  }
+  ): Outcome[SceneUpdateFragment] =   // this technique supplied by DaveSmith
+    Outcome(
+      SceneUpdateFragment(
+        LayerKeys.Background -> Layer.empty, // Initialising keys early (root level), in the desired order
+        LayerKeys.Middleground -> Layer.empty,
+        LayerKeys.ForegroundHighL -> Layer.empty,        
+        LayerKeys.ForegroundSpots -> Layer.empty,
+        LayerKeys.ForegroundPieces -> Layer.empty,
+        LayerKeys.Overlay -> Layer.empty
+      )
+  )
 
   scribe.debug("@@@ FlicFlacMain class FlicFlacGame Finish")
 end FlicFlacGame
@@ -213,5 +219,13 @@ case object ButtonResultsEvent extends GlobalEvent
 case object ButtonParamsEvent extends GlobalEvent
 case object ButtonPlusEvent extends GlobalEvent
 case object ButtonMinusEvent extends GlobalEvent
-case object ButtonTurnEvent extends GlobalEvent
-case object SubSysGameUpdate extends GlobalEvent
+
+//ButtonTurnEvent needs to be an object so that it can be filtered and processed in the subsystem(s)
+//case object ButtonTurnEvent extends GlobalEvent
+object ButtonTurnEvent :
+  case class Occurence() extends GlobalEvent
+end ButtonTurnEvent
+
+object Freeze:
+  case class PanelContent(panelType: PanelType, msg: String) extends GlobalEvent
+end Freeze
