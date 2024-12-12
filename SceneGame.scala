@@ -42,7 +42,12 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
           case e: FlicFlacGameUpdate.Info =>
             scribe.debug("@@@ FlicFlacGameUpdate.Info")
             FlicFlacGameModel.modify(e.ffgm, None, None)
-            Outcome(e.ffgm)
+            if (e.ffgm.gameState == GameState.FINISH) then
+              val resultsMsg = constructResultMsg(e.ffgm)
+              Outcome(e.ffgm).addGlobalEvents(Freeze.PanelContent(PanelType.P_RESULTS, resultsMsg))
+            else
+              Outcome(e.ffgm)
+            end if
 
           case e: PointerEvent.PointerDown =>
             val clickPoint = e.position
@@ -270,9 +275,17 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
             if captors.isEmpty then
               val newTT = TurnTimer.restartForTurn(model.turnTimer)
               val newPieces = model.pieces.newTurn(model)
+              val cylinderScore = newScore._1
+              val blockScore = newScore._2
               val newGameState = 
-                if model.gameState == GameState.CYLINDER_TURN then
-                  scribe.debug("@@@@ BLOCK TURN @@@")
+                if (cylinderScore >= model.winningScore) && (cylinderScore >= blockScore + 2) then
+                  scribe.debug("@@@ CYLINDERS WIN")
+                  GameState.FINISH
+                else if (blockScore >= model.winningScore) && (blockScore >= cylinderScore + 2) then
+                  scribe.debug("@@@ BLOCKS WIN")
+                  GameState.FINISH
+                else if model.gameState == GameState.CYLINDER_TURN then
+                  scribe.debug("@@@ BLOCK TURN @@@")
                   GameState.BLOCK_TURN
                 else
                   scribe.debug("@@@ CYLINDER TURN @@@")
@@ -287,7 +300,12 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
                 turnTimer = newTT
               )
               scribe.debug("@@@ " + model.gameState.toString() + " -> " + newModel.gameState.toString()) 
-              FlicFlacGameModel.modify(newModel, None, None)
+              if (newModel.gameState == GameState.FINISH)
+                val resultsMsg = constructResultMsg(newModel)
+                FlicFlacGameModel.modify(newModel, None, None).addGlobalEvents(Freeze.PanelContent(PanelType.P_RESULTS, resultsMsg))
+              else
+                FlicFlacGameModel.modify(newModel, None, None)
+              end if
             else
               scribe.debug("@@@ CAPTORS @@@")
               val newTT = TurnTimer.restartForCaptors(model.turnTimer)
@@ -657,6 +675,26 @@ object GameSceneViewModel:
       ).withUpActions(ButtonTurnEvent.Occurence())
     )
 end GameSceneViewModel
+
+def constructResultMsg(model:FlicFlacGameModel) : String =
+  val cylinderScore = model.gameScore._1
+  val blockScore = model.gameScore._2
+  val (cylinderName, blockName) = 
+    if (model.ourPieceType == CYLINDER) then
+      (model.ourName, model.oppoName)
+    else
+      (model.oppoName, model.ourName)
+    end if 
+  val resultMsg = 
+    if (cylinderScore >= model.winningScore) && (cylinderScore >= blockScore + 2) then
+      "Winner:" + cylinderName + " by " + cylinderScore + " captures to " + blockScore + " captures."
+    else if (blockScore >= model.winningScore) && (blockScore >= cylinderScore + 2) then
+      "Winner:" + blockName + " by " + blockScore + " captures to " + cylinderScore + " captures."
+    else
+      ""
+    end if
+  resultMsg
+end constructResultMsg
 
 object FlicFlacGameUpdate:
   case class Info(ffgm: FlicFlacGameModel) extends GlobalEvent

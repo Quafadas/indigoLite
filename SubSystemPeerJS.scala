@@ -345,16 +345,16 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
 
     peerJsPanel  match {
       case (PanelType.P_ERROR, msg) =>
-        displayErrorPanel(msg, dSF)
+        displayPanel(msg, dSF, PanelType.P_ERROR)
       case (PanelType.P_RESULTS, msg) =>
-        displayResultsPanel(msg, dSF)
+        displayPanel(msg, dSF, PanelType.P_RESULTS)
       case _ => // including P_INVISIBLE
         Outcome(SceneUpdateFragment.empty)        
     }
 
   end present
 
-  def displayErrorPanel(msg: String, dSF: Double) : Outcome[SceneUpdateFragment] =
+  def displayPanel(msg: String, dSF: Double, pType: PanelType) : Outcome[SceneUpdateFragment] =
     val boxX = 260
     val boxY = 176
 
@@ -369,8 +369,14 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
       case 5 => (((8 + (6 * (msg.length()))).max(500)), 90, 30, 10, 50, 70)
       case _ => (((5 + (5 * (msg.length()))).max(400)), 60, 20, 8, 34, 45)
            
-    val textError3 = TextBox("*** FlicFlac ERROR ***" , boxW-16, boxH-16)
-      .alignCenter.bold.withColor(RGBA.Red).withFontSize(Pixels(titleFontSize)).moveTo(boxX+8, boxY+8)
+    val textError3 =
+      if (pType == PanelType.P_RESULTS) then
+        TextBox("*** GAME OVER ***" , boxW-16, boxH-16)
+          .alignCenter.bold.withColor(RGBA.Red).withFontSize(Pixels(titleFontSize)).moveTo(boxX+8, boxY+8)
+      else
+        TextBox("*** FlicFlac ERROR ***" , boxW-16, boxH-16)
+          .alignCenter.bold.withColor(RGBA.Red).withFontSize(Pixels(titleFontSize)).moveTo(boxX+8, boxY+8)
+      end if
 
     val textError4 = TextBox(msg, boxW-16, boxH-16)
       .withColor(RGBA.Black).withFontSize(Pixels(msgFontSize)).moveTo(boxX+8, boxY+box4Yoffset)
@@ -383,7 +389,7 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
       |+| SceneUpdateFragment(LayerKeys.Overlay -> Layer.Content(Shape.Box(Rectangle(boxX+4, boxY+4, boxW-8, boxH-8), Fill.Color(RGBA.Cyan))))
       |+| SceneUpdateFragment(LayerKeys.Overlay -> Layer.Content(Batch(textError3, textError4, textError5)))
     )
-  end displayErrorPanel
+  end displayPanel
   
   def displayResultsPanel(msg:String, dSF: Double) : Outcome[SceneUpdateFragment] = 
     Outcome(SceneUpdateFragment.empty) // FIXME not implemented yet    
