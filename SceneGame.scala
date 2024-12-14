@@ -43,7 +43,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
             scribe.debug("@@@ FlicFlacGameUpdate.Info")
             FlicFlacGameModel.modify(e.ffgm, None, None)
             if (e.ffgm.gameState == GameState.FINISH) then
-              val resultsMsg = constructResultMsg(e.ffgm)
+              val resultsMsg = constructResults(e.ffgm)
               Outcome(e.ffgm).addGlobalEvents(Freeze.PanelContent(PanelType.P_RESULTS, resultsMsg))
             else
               Outcome(e.ffgm)
@@ -122,7 +122,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
                     scribe.debug("@@@ PointerEvent " + dMsg)
                     val newHL = model.highLighter.shine(false)
                     FlicFlacGameModel.modify(model, None, Some(newHL))
-                      .addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, "")) // this clears any panel showing
+                      .addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("",""))) // this clears any panel showing
             end match // hexXYCoordsFromDisplayXY
 
           case e: PointerEvent.PointerUp =>
@@ -229,7 +229,8 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
 
           case ButtonNewGameEvent =>
             checkTurn(model,"NEWGAME")
-            Outcome(FlicFlacGameModel.reset(model))
+            val newModel = FlicFlacGameModel.reset(model)
+            FlicFlacGameModel.modify(newModel, None, None)
 
           case ButtonPlusEvent =>
             scribe.debug("@@@ ButtonPlusEvent")
@@ -300,9 +301,9 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
                 turnTimer = newTT
               )
               scribe.debug("@@@ " + model.gameState.toString() + " -> " + newModel.gameState.toString()) 
-              if (newModel.gameState == GameState.FINISH)
-                val resultsMsg = constructResultMsg(newModel)
-                FlicFlacGameModel.modify(newModel, None, None).addGlobalEvents(Freeze.PanelContent(PanelType.P_RESULTS, resultsMsg))
+              if (newModel.gameState == GameState.FINISH)                
+                val results = constructResults(newModel)
+                FlicFlacGameModel.modify(newModel, None, None).addGlobalEvents(Freeze.PanelContent(PanelType.P_RESULTS, results))
               else
                 FlicFlacGameModel.modify(newModel, None, None)
               end if
@@ -311,7 +312,12 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
               val newTT = TurnTimer.restartForCaptors(model.turnTimer)
               val newPieces = Melee(model).rewardCaptors(model, captors)
               val newModel = model.copy(pieces = newPieces, possibleMoveSpots = emptySpots, gameScore = newScore, turnTimer = newTT)
-              FlicFlacGameModel.modify(newModel, None, None)
+              if (newModel.gameState == GameState.FINISH)                
+                val results = constructResults(newModel)
+                FlicFlacGameModel.modify(newModel, None, None).addGlobalEvents(Freeze.PanelContent(PanelType.P_RESULTS, results))
+              else
+                FlicFlacGameModel.modify(newModel, None, None)
+              end if
             end if
 
           // Keyboard Interface for testing purposes only ...
@@ -320,7 +326,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
             else if k.keyCode == Key.SUBTRACT then Outcome(model).addGlobalEvents(ButtonMinusEvent)
             else if k.keyCode == Key.ENTER then Outcome(model).addGlobalEvents(ButtonTurnEvent.Occurence())
             else if k.keyCode == Key.F3 then Outcome(model).addGlobalEvents(SceneEvent.Previous)
-            else if k.keyCode == Key.F4 then Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR,"Test Error from GAME FKEY_F4"))
+            else if k.keyCode == Key.F4 then Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, ("Error", "Test Error from GAME FKEY_F4")))
             else Outcome(model)
             end if
 
@@ -357,7 +363,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
       catch {
           case t: Throwable =>
             scribe.error("SceneGame updateModel " + t.getMessage())
-            Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, t.getMessage()))
+            Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, ("Error", t.getMessage())))
       }
   
   } // end of GlobalEvent => Outcome[FlicFlacGameModel]
@@ -676,7 +682,7 @@ object GameSceneViewModel:
     )
 end GameSceneViewModel
 
-def constructResultMsg(model:FlicFlacGameModel) : String =
+def constructResults(model:FlicFlacGameModel) : (String, String) =
   val cylinderScore = model.gameScore._1
   val blockScore = model.gameScore._2
   val (cylinderName, blockName) = 
@@ -685,16 +691,18 @@ def constructResultMsg(model:FlicFlacGameModel) : String =
     else
       (model.oppoName, model.ourName)
     end if 
-  val resultMsg = 
+  val results : (String, String) = 
     if (cylinderScore >= model.winningScore) && (cylinderScore >= blockScore + 2) then
-      "Winner:" + cylinderName + " by " + cylinderScore + " captures to " + blockScore + " captures."
+      ("*** " + cylinderName + " WINS ***",
+      "Scores: " + cylinderName + ":" + cylinderScore + " " + blockName + ":" + blockScore + " ..." )
     else if (blockScore >= model.winningScore) && (blockScore >= cylinderScore + 2) then
-      "Winner:" + blockName + " by " + blockScore + " captures to " + cylinderScore + " captures."
+      ("*** " + blockName + " WINS ***",
+      "Scores: " + blockName + ":" + blockScore + " " + cylinderName + ":" + cylinderScore + " ...")
     else
-      ""
+      ("???","???")
     end if
-  resultMsg
-end constructResultMsg
+  results
+end constructResults
 
 object FlicFlacGameUpdate:
   case class Info(ffgm: FlicFlacGameModel) extends GlobalEvent

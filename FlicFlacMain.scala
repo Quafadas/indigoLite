@@ -227,5 +227,5 @@ object ButtonTurnEvent :
 end ButtonTurnEvent
 
 object Freeze:
-  case class PanelContent(panelType: PanelType, msg: String) extends GlobalEvent
+  case class PanelContent(panelType: PanelType, content: (String, String)) extends GlobalEvent
 end Freeze

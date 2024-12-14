@@ -92,12 +92,12 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
           end if
 
         case e: PointerEvent.PointerDown =>
-          Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, "")) // this clears any panel showing
+          Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("",""))) // this clears any panel showing
 
         // Keyboard Interface for testing purposes only ...
         case k: KeyboardEvent.KeyDown =>
           if k.keyCode == Key.F3 then Outcome(model).addGlobalEvents(SceneEvent.Next)
-          else if k.keyCode == Key.F4 then Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR,"Test Error from PARAMS FKEY_F4"))
+          else if k.keyCode == Key.F4 then Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, ("Error", "Test Error from PARAMS FKEY_F4")))
           else Outcome(model)
           end if
 
@@ -257,7 +257,7 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
         scribe.debug("@@@ " + sError)
         val newModel = responderModel
         lastTxGameModel = Some(newModel)
-        FlicFlacGameModel.modify(newModel, None, None).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, sError))
+        FlicFlacGameModel.modify(newModel, None, None).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, ("Error", sError)))
   end initiatorStateMachine
       
   def responderStateMachine(  context: SceneContext[FlicFlacStartupData], currentState: GameState, initiatorModel: FlicFlacGameModel) : Outcome[FlicFlacGameModel] = 
@@ -365,7 +365,7 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
         scribe.debug("@@@ " + sError)
         val newModel = initiatorModel
         lastTxGameModel = Some(newModel)
-        FlicFlacGameModel.modify(newModel, None, None).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, sError))
+        FlicFlacGameModel.modify(newModel, None, None).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, ("Error", sError)))
         
   end responderStateMachine
 end SceneParams

@@ -198,7 +198,8 @@ object FlicFlacGameModel:
     val emptySpots: Spots = Spots(Set.empty)
     val turnTime = previousModel.turnTimer.iTotalTurnTime
     val captorsTime = previousModel.turnTimer.iCaptorsTurnTime
-    val turnTimer = TurnTimer(turnTime, captorsTime)
+    val turnTimer1 = TurnTimer(turnTime, captorsTime)
+    val turnTimer2 = TurnTimer.restartForTurn(turnTimer1)
     FlicFlacGameModel(
       sOurName,
       sOppoName,
@@ -207,12 +208,12 @@ object FlicFlacGameModel:
       iRandEventFreq,
       GameState.START_CON1,
       GameState.START_CON1,
-      GameState.START_CON1,
+      GameState.CYLINDER_TURN,
       score,
       summonPieces(hexBoard4),
       emptySpots,
       highLighter,
-      turnTimer
+      turnTimer2
     )
   end reset
 
