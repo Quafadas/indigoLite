@@ -19,7 +19,7 @@ case class HH3(
     yS: Int // .... pixel y scaled offset from base point for origin of png to paint this hex
 )
 
-class HexBoard4 ():
+class HexBoard4():
 
   scribe.debug("@@@ Class HexBoard4 Start")
 
