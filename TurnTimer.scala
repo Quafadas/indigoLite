@@ -30,19 +30,24 @@ object TurnTimer:
   end update
 
   def isActive(tt: TurnTimer): Boolean =
-    if (tt.iThisTurnTime == 0) && (tt.iThisTurnExpires == 0) then 
+    if (tt.iThisTurnTime == 0) && (tt.iThisTurnExpires == 0) then
+      // not active
       false
     else
+      // true
       true
     end if
   end isActive
 
   def expired(tt: TurnTimer): Boolean =
     if (tt.iThisTurnTime == 0) || (tt.iThisTurnExpires == 0) then
+      // not expired and not active
       false
-    else if (tt.iThisTurnTime >= tt.iThisTurnExpires) then
+    else if tt.iThisTurnTime >= tt.iThisTurnExpires then
+      // expired
       true
     else
+      // active but not expired
       false
     end if
   end expired
@@ -82,20 +87,26 @@ object TurnTimer:
 
     val bCylinder = (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == CYLINDER)
     val bBlock = (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == BLOCK)
-    
-    val content1 = 
+
+    val content1 =
       if (bCylinder == true) || (bBlock == true) then
+        // magenta slider
         Layer.Content(GameAssets.gTimeSliderActiveBody(dSF).moveTo(iSliderXPos, iBodyTop))
       else
+        // grey slider
         Layer.Content(GameAssets.gTimeSliderInactiveBody(dSF).moveTo(iSliderXPos, iBodyTop))
       end if
+    end content1
 
-    val content2 = 
-      if (bCylinder == true) || (bBlock == true) then     
+    val content2 =
+      if (bCylinder == true) || (bBlock == true) then
+        // magenta slider
         Layer.Content(GameAssets.gTimeSliderActiveTop(dSF).moveTo(iSliderXPos, iCapTop))
       else
+        // grey slider
         Layer.Content(GameAssets.gTimeSliderInactiveTop(dSF).moveTo(iSliderXPos, iCapTop))
       end if
+    end content2
 
     val r3 = Rectangle(iSliderXPos, 0, iWidth, iCapTop)
     val content3 = Layer.Content(Shape.Box(r3, Fill.Color(RGBA.White)))
