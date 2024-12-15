@@ -28,9 +28,9 @@ object GameAssets:
 
   /* Game rectangle found by experimentation.
      This rectangle dimensions also laid out in html file
-     This is the "master" setting for the game dimensions 
+     This is the "master" setting for the game dimensions
      for all of the scala code
-  */
+   */
 
   val GameSceneDimensions = Rectangle(0, 0, 1580, 1300)
 
@@ -61,7 +61,7 @@ object GameAssets:
   def gScorePanelBlinkCylinder(sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(250, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName)))
 
-  def gScorePanelBlinkBlock (sf: Double): Graphic[Material.ImageEffects] =
+  def gScorePanelBlinkBlock(sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(500, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName)))
 
   def gParamsPanel(sf: Double): Graphic[Material.ImageEffects] =
