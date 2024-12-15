@@ -63,6 +63,7 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
 
   var peer: Option[Peer] = None
   var conn: Option[DataConnection] = None
+  var remotePeerName: String = ""
   var latestUpdate: Option[FlicFlacGameUpdate.Info] = None
   val eventQueue: Queue[WebRtcEvent] = Queue.empty[WebRtcEvent]
   var peerJsPanel: (PanelType, (String, String)) = (PanelType.P_INVISIBLE, ("", ""))
@@ -118,7 +119,8 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
             localPeer.on(
               "connection",
               (c: DataConnection) =>
-                scribe.debug("@@@-12 localPeer.connection to " + c.label)
+                remotePeerName = c.label // RESPONDER setting up remotePeerName
+                scribe.debug("@@@-12 localPeer.connection to " + remotePeerName)
 
                 // optionally, we can reject connection if c.label != context.reference.oppoName ...
                 // ... this is the scenario where an unknown peer has connected to us
@@ -154,13 +156,14 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
 
           case WebRtcEvent.Connect(s) =>
             val ourname = peer.get.id
-            scribe.debug("@@@-30 SubSystemPeerJS WebRtcEvent.Connect: " + ourname + " ->  " + s)
+            remotePeerName = s // INITIATOR setting up remotePeerName
+            scribe.debug("@@@-30 SubSystemPeerJS WebRtcEvent.Connect: " + ourname + " ->  " + remotePeerName)
 
             val connection = peer match
               case Some(p) =>
                 val options = js.Dynamic.literal()
-                options.label = "<" + ourname + "," + s + ">"
-                val conn = p.connect(s, options)
+                options.label = ourname // the responder (section 40) will use this label to set his remotePeerName
+                val conn = p.connect(remotePeerName, options)
                 conn.on(
                   "open",
                   (_: Any) =>
@@ -196,7 +199,6 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
               "data",
               (data: js.Object) =>
                 scribe.debug("@@@-41 ConnectionOpen.on data")
-
                 val str = js.JSON.stringify(data)
                 val ffgm = decodeRxJsonObject(data, 48) // 48 is the error number
                 val ffgm1 = convertRxGameModel(ffgm)
@@ -257,7 +259,7 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
 
             if TickTimer.isInactive(timerT1) then
               conn.foreach { c =>
-                scribe.debug("@@@-71 SendData " + peer.get.id + "-> " + c.label)
+                scribe.debug("@@@-71 SendData " + peer.get.id + "->" + remotePeerName)
                 val toSendNoSpaces = ffgm.asJson.noSpaces
                 val toSendJson = js.JSON.parse(toSendNoSpaces)
                 c.send(toSendJson)
@@ -274,7 +276,7 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
 // It appears that sections 41 and 61 do the same job as this one, which ends up as a duplication of effort
 //
 //            conn.foreach { c =>
-//              scribe.debug("@@@-81 ReceiveData " + c.label + "->" + peer.get.id)
+//              scribe.debug("@@@-81 ReceiveData " + remotePeerName + "->" + peer.get.id)
 //              val ffgm = decodeRxJsonObject(data, 88) // 88 is the error number
 //              val ffgm1 = convertRxGameModel(ffgm)
 //              latestUpdate = Some(FlicFlacGameUpdate.Info(ffgm1))
