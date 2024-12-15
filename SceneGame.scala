@@ -478,8 +478,10 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
 
     val scorePanel =
       if (bBlinkOn == true) && (model.gameState == GameState.CYLINDER_TURN) then
+        // select purple cylinder icon
         GameAssets.gScorePanelBlinkCylinder(1.0).moveTo(0, 130)
       else if (bBlinkOn == true) && (model.gameState == GameState.BLOCK_TURN) then
+        // select purple block icon
         GameAssets.gScorePanelBlinkBlock(1.0).moveTo(0, 130)
       else
         // normal panel
