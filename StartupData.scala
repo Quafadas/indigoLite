@@ -60,7 +60,7 @@ object FlicFlacConfig:
   val config: GameConfig =
     GameConfig(
       viewport = GameViewport(GameAssets.GameSceneDimensions.width, GameAssets.GameSceneDimensions.height),
-      frameRateLimit = Option(FPS.`30`),  // this is the slowest FPS indigo game engine allows ... JP 27/08/24
+      frameRateLimit = Option(FPS.`30`), // this is the slowest FPS indigo game engine allows ... JP 27/08/24
       clearColor = RGBA.fromHexString("#000000"),
       magnification = 1,
       transparentBackground = false,
