@@ -46,12 +46,42 @@
         </span>
       </div>
 
-      <i>3) Propose the game parameters</i><br>
+      <div>
+        <i>3) Select board size</i><br>
+        <fieldset>
+          <div>
+            <span title="Select the best size that suits your screen">
+              <div id="errorMsg3" class="configErrorMsg"><b>Invalid Board Size</b><br>
+                Select one of Small, Medium, Large or Extra Large to specify your preferred board size.<br>
+              </div>
+              <label class="configRadioLabel">
+                Small:
+                <input type="radio" id="size5" name="boardSize" value=5 class="configRadio"/>
+              </label>
+              <label class="configRadioLabel">
+                &nbsp;&nbsp;&nbsp;&nbsp;Medium:
+                <input type="radio" id="size6" name="boardSize" value=6 class="configRadio"/>
+              </label>
+              <label class="configRadioLabel">
+                &nbsp;&nbsp;&nbsp;&nbsp;Large:
+                <input type="radio" id="size7" name="boardSize" value=7 class="configRadio"/>
+              </label>
+              <label class="configRadioLabel">
+                &nbsp;&nbsp;&nbsp;&nbsp;Extra Large:
+                <input type="radio" id="size8" name="boardSize" value=8 class="configRadio"/>
+              </label>
+          </span>
+          </div>
+        </fieldset>
+      </div>
+
+
+      <i>4) Propose the game parameters</i><br>
       <div>
         <table class ="borderless">        
           <td class ="borderless">
             <span title="This is the number of captures you need to win. Remember you must win by at least two clear captures.">
-              <div id="errorMsg3A" class="configErrorMsg"><b>Invalid target set as Final Score</b><br>
+              <div id="errorMsg4A" class="configErrorMsg"><b>Invalid target set as Final Score</b><br>
                 The score to win needs to be set as a non-zero positive integer.<br>
               </div>
               <label for="scoreToWin" class="configLabel">Score to Win:</label>
@@ -69,7 +99,7 @@
         <table class ="borderless">        
           <td class ="borderless">
             <span title="This is the number of seconds allowed for each turn. A value of zero disables this timer">
-              <div id="errorMsg3B" class="configErrorMsg"><b>Invalid Turn Time</b><br>
+              <div id="errorMsg4B" class="configErrorMsg"><b>Invalid Turn Time</b><br>
                 The turn time must be set as as a non-zero positive integer, <br>
                 representing the maximum time allowed in seconds for each turn.<br>
               </div>
@@ -89,7 +119,7 @@
         <table class ="borderless">        
           <td class ="borderless">
             <span title="This is the number of seconds allowed for an extended turn after a successful capture. It is suggested to make this half the turn timer above. Once again, a value of zero disables this timer.">
-              <div id="errorMsg3C" class="configErrorMsg"><b>Invalid Captor&apos;s Turn Time</b><br>
+              <div id="errorMsg4C" class="configErrorMsg"><b>Invalid Captor&apos;s Turn Time</b><br>
                 The captor&apos;s turn time must be set as as a non-zero positive integer, <br>
                 representing the maximum time allowed in seconds for extra turns.<br>
               </div>
@@ -107,7 +137,7 @@
       <div>
         <table class ="borderless">        
           <td class ="borderless">
-            <div id="errorMsg3D" class="configErrorMsg">
+            <div id="errorMsg4D" class="configErrorMsg">
               <b>Invalid Random Event Probability</b><br>
               This is an integer representing the percentage probability,<br>
               where 0 <= probability <= 100 <br>
@@ -183,8 +213,15 @@
 
       // validate the new parameters
 
+      var checkRadio = document.querySelector('input[name="boardSize"]:checked')
+      var bs = 0
+      if (checkRadio != null) {
+        bs = checkRadio.value
+      }
+
       var myName = document.getElementById("myName").value
       var oppoName = document.getElementById("oppoName").value
+      var boardSize = bs
       var scoreToWin = document.getElementById("scoreToWin").value
       var turnTime = document.getElementById("turnTime").value
       var captorsTime = document.getElementById("captorsTime").value
@@ -210,27 +247,33 @@
         invalidParams = true;
       }
 
+      if ((boardSize != 5) && (boardSize != 6) && (boardSize != 7) && (boardSize != 8))
+      {
+        document.getElementById("errorMsg3").style.display="block";
+        invalidParams = true;
+      }
+
       if (scoreToWin < 1)
       {
-        document.getElementById("errorMsg3A").style.display="block";
+        document.getElementById("errorMsg4A").style.display="block";
         invalidParams = true;
       }
 
       if (turnTime < 0)
       {
-        document.getElementById("errorMsg3B").style.display="block";
+        document.getElementById("errorMsg4B").style.display="block";
         invalidParams = true;
       }
 
       if (captorsTime < 0)
       {
-        document.getElementById("errorMsg3C").style.display="block";
+        document.getElementById("errorMsg4C").style.display="block";
         invalidParams = true;        
       }
 
       if ((randEventProb < 0) || (randEventProb > 100))
       {
-        document.getElementById("errorMsg3D").style.display="block";
+        document.getElementById("errorMsg4D").style.display="block";
         invalidParams = true;
       }
 
