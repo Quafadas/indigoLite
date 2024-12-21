@@ -10,6 +10,7 @@ import game.Piece.pieceShape
 final case class FlicFlacGameModel(
     ourName: String, // ................. Negotiated at startup - rx packets SWAP
     oppoName: String, // ................ Negotiated at startup - rx packets SWAP
+    qqqqqSize: Int, // .................. Negotiated at startup
     ourPieceType: Int, // ............... Negotiated at startup - rx packets INVERT
     winningScore: Int, // ............... Negotiated at startup
     randEventFreq: Int, // .............. Negotiated at startup
@@ -80,6 +81,7 @@ object FlicFlacGameModel:
     FlicFlacGameModel(
       sOurName,
       sOppoName,
+      888,
       iOurPieceType,
       iWinningScore,
       iRandEventFreq,
@@ -203,6 +205,7 @@ object FlicFlacGameModel:
     FlicFlacGameModel(
       sOurName,
       sOppoName,
+      888,
       iOurPieceType,
       iWinningScore,
       iRandEventFreq,
