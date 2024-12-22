@@ -10,7 +10,7 @@ import game.Piece.pieceShape
 final case class FlicFlacGameModel(
     ourName: String, // ................. Negotiated at startup - rx packets SWAP
     oppoName: String, // ................ Negotiated at startup - rx packets SWAP
-    qqqqqSize: Int, // .................. Negotiated at startup
+    boardSize: Int, // ,................. Negotiated at startup
     ourPieceType: Int, // ............... Negotiated at startup - rx packets INVERT
     winningScore: Int, // ............... Negotiated at startup
     randEventFreq: Int, // .............. Negotiated at startup
@@ -22,6 +22,7 @@ final case class FlicFlacGameModel(
     possibleMoveSpots: Spots, // ........ Updates
     highLighter: HighLighter, // ........ Updates
     turnTimer: TurnTimer // ............. Updates
+
 ) derives Encoder.AsObject,
       Decoder
 
@@ -69,19 +70,20 @@ object FlicFlacGameModel:
 
     val sOurName = playerParams.playPams1_Name1
     val sOppoName = playerParams.playPams2_Name2
+    val boardSize = playerParams.playPams3_BoardSize
     val iOurPieceType = pieceType
-    val iWinningScore = playerParams.playPams3_ScoreToWin
-    val iRandEventFreq = playerParams.playPams6_RandEventProb
+    val iWinningScore = playerParams.playPams4_ScoreToWin
+    val iRandEventFreq = playerParams.playPams7_RandEventProb
     val score = (0, 0)
     // pieces
     val startingSpots: Spots = Spots(Set.empty)
-    val turnTimer = TurnTimer(playerParams.playPams4_TurnTime, playerParams.playPams5_CaptorsTime)
+    val turnTimer = TurnTimer(playerParams.playPams5_TurnTime, playerParams.playPams6_CaptorsTime)
     val highLighter = new HighLighter(false, Point(0, 0))
 
     FlicFlacGameModel(
       sOurName,
       sOppoName,
-      888,
+      boardSize,
       iOurPieceType,
       iWinningScore,
       iRandEventFreq,
@@ -192,6 +194,7 @@ object FlicFlacGameModel:
 
     val sOurName = previousModel.ourName
     val sOppoName = previousModel.oppoName
+    val iBoardSize = previousModel.boardSize
     val iOurPieceType = previousModel.ourPieceType
     val iWinningScore = previousModel.winningScore
     val iRandEventFreq = previousModel.randEventFreq
@@ -205,7 +208,7 @@ object FlicFlacGameModel:
     FlicFlacGameModel(
       sOurName,
       sOppoName,
-      888,
+      iBoardSize,
       iOurPieceType,
       iWinningScore,
       iRandEventFreq,

@@ -11,6 +11,7 @@
       background-image: url('rules/FlicFlacV4.png');
       background-size: 100vw 100vh;
       background-color: black;
+      background-repeat: no-repeat;
       font-family: arial;
       font-size: 30px;
     }    
@@ -18,7 +19,7 @@
 
     <link rel="stylesheet" href="./Rules.css" />    
   </head>
-  <body onload="LocalStorageRead()">    
+  <body onload="LocalStorageRead()">
     <div id="readResults" class="configParams">
       <div>
         <i>1) Enter your name</i><br>
@@ -154,18 +155,43 @@
             </td>
             </table>
       </div>
+      <div id="Index">
+        <button id="playButton" class="myButton" style="margin-right: 2em;" onclick = "LocalStorageWrite()">Play</button>
+
+        <a href = "./Rules1.html">
+          <button class="myButton" style="margin-right: 2em; width: 8em">Instructions</button>
+        </a>
+      </div>
     </div>
 
-    <br>
-    <div id="Index">
-      <button id="playButton" class="myButton" style="margin-right: 2em;" onclick = "LocalStorageWrite()">Play</button>
-
-      <a href = "./Rules1.html">
-        <button class="myButton" style="margin-right: 2em; width: 8em">Instructions</button>
-      </a>
-    </div>
     
     <script>
+
+    document.getElementById("size5").addEventListener('click', function() {
+      document.body.style.background = "url('./FlicFlacSize5R.png')"
+      document.body.style.setProperty("background-repeat","no-repeat")
+
+    })
+
+    document.getElementById("size6").addEventListener('click', function() {
+      document.body.style.background = "url('./FlicFlacSize6R.png')"
+      document.body.style.setProperty("background-repeat","no-repeat")
+
+    })
+
+    document.getElementById("size7").addEventListener('click', function() {
+      document.body.style.background = "url('./FlicFlacSize7R.png')"
+      document.body.style.setProperty("background-repeat","no-repeat")
+
+    })
+
+    document.getElementById("size8").addEventListener('click', function() {
+      document.body.style.background = "url('./FlicFlacSize8R.png')"
+      document.body.style.setProperty("background-repeat","no-repeat")
+
+    })
+
+
     
     function LocalStorageRead() {
       var sFlicFlacPlayParams = window.localStorage.getItem("FlicFlac-Params");
@@ -189,10 +215,21 @@
           document.getElementById("myName").defaultValue = oFlicFlac.playPams1_Name1
           document.getElementById("oppoName").defaultValue = oFlicFlac.playPams2_Name2
         }
-        document.getElementById("scoreToWin").defaultValue = oFlicFlac.playPams3_ScoreToWin
-        document.getElementById("turnTime").defaultValue = oFlicFlac.playPams4_TurnTime
-        document.getElementById("captorsTime").defaultValue = oFlicFlac.playPams5_CaptorsTime
-        document.getElementById("randEventProb").defaultValue = oFlicFlac.playPams6_RandEventProb      
+
+        if (oFlicFlac.playPams3_BoardSize == 5)
+          document.getElementById("size5").checked = true
+        else if (oFlicFlac.playPams3_BoardSize == 6)
+          document.getElementById("size6").checked = true
+        else if (oFlicFlac.playPams3_BoardSize == 7)
+          document.getElementById("size7").checked = true
+        else if (oFlicFlac.playPams3_BoardSize == 8)
+          document.getElementById("size8").checked = true
+        else
+          ;
+        document.getElementById("scoreToWin").defaultValue = oFlicFlac.playPams4_ScoreToWin
+        document.getElementById("turnTime").defaultValue = oFlicFlac.playPams5_TurnTime
+        document.getElementById("captorsTime").defaultValue = oFlicFlac.playPams6_CaptorsTime
+        document.getElementById("randEventProb").defaultValue = oFlicFlac.playPams7_RandEventProb      
       }
       else      
       {
@@ -200,11 +237,11 @@
         console.log("@@@ Cache for PlayParams not found - suggesting defaults")
         document.getElementById("myName").defaultValue = "Player1"
         document.getElementById("oppoName").defaultValue = "Player2"
+        document.getElementById("size8").checked = true
         document.getElementById("scoreToWin").defaultValue = 11
         document.getElementById("turnTime").defaultValue = 20
         document.getElementById("captorsTime").defaultValue = 10
         document.getElementById("randEventProb").defaultValue = 1
-
       }
     }
     
@@ -213,15 +250,14 @@
 
       // validate the new parameters
 
-      var checkRadio = document.querySelector('input[name="boardSize"]:checked')
-      var bs = 0
-      if (checkRadio != null) {
-        bs = checkRadio.value
-      }
 
       var myName = document.getElementById("myName").value
       var oppoName = document.getElementById("oppoName").value
-      var boardSize = bs
+      var checkRadio = document.querySelector('input[name="boardSize"]:checked')
+      var boardSize = 0
+      if (checkRadio != null) {
+        boardSize = checkRadio.value
+      }
       var scoreToWin = document.getElementById("scoreToWin").value
       var turnTime = document.getElementById("turnTime").value
       var captorsTime = document.getElementById("captorsTime").value
@@ -289,10 +325,11 @@
         var oPlayParams = {
           playPams1_Name1: myName,
           playPams2_Name2: oppoName,
-          playPams3_ScoreToWin: scoreToWin,
-          playPams4_TurnTime: turnTime,
-          playPams5_CaptorsTime: captorsTime,
-          playPams6_RandEventProb: randEventProb
+          playPams3_BoardSize: boardSize,
+          playPams4_ScoreToWin: scoreToWin,
+          playPams5_TurnTime: turnTime,
+          playPams6_CaptorsTime: captorsTime,
+          playPams7_RandEventProb: randEventProb
         }
 
         window.localStorage.removeItem("FlicFlac-Game1") // remove any previous game for INITIATOR

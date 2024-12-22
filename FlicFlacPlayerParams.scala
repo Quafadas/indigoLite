@@ -9,10 +9,11 @@ import io.circe.parser.decode
 final case class FlicFlacPlayerParams(
     playPams1_Name1: String, // ........... default "Player1"
     playPams2_Name2: String, // ........... default "Player2"
-    playPams3_ScoreToWin: Int, // ......... default 11
-    playPams4_TurnTime: Int, // ........... default 20 seconds
-    playPams5_CaptorsTime: Int, // ........ default 10 seconds
-    playPams6_RandEventProb: Int // ....... default 1 (in 100)
+    playPams3_BoardSize: Int, // .......... default 8
+    playPams4_ScoreToWin: Int, // ......... default 11
+    playPams5_TurnTime: Int, // ........... default 20 seconds
+    playPams6_CaptorsTime: Int, // ........ default 10 seconds
+    playPams7_RandEventProb: Int // ....... default 1 (in 100)
 ) derives Encoder.AsObject,
       Decoder
 
@@ -34,6 +35,7 @@ object FlicFlacPlayerParams:
           FlicFlacPlayerParams(
             "Player1", // ..... Our name
             "Player2", // ..... Opponents name
+            8, // ............. BoardSize
             11, // ............ ScoreToWin
             20, // ............ TurnTime
             10, // ............. CaptorsTime
