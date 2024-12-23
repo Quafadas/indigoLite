@@ -128,31 +128,40 @@ class HexBoard4():
 
   /*
   colorBoardHexes generates the pattern colors for each mini hex using the
-  color combinations in rowTemplate
+  color combinations in the row templates
    */
   def colorBoardHexes(row: Int, arrayWidth: Int, arrayHeight: Int): Unit =
 
-    val rowTemplate: Array[Vector[Int]] = Array(
-      Vector(CK, CK, CK), // 0
-      Vector(CR, CR, CY), // 1
-      Vector(CO, CP, CO), // 2
-      Vector(CK, CK, CK), // 3
-      Vector(CY, CB, CY), // 4
-      Vector(CG, CG, CO), // 5
-      Vector(CK, CK, CK), // 6
-      Vector(CB, CB, CR), // 7
-      Vector(CP, CG, CP), // 8
-      Vector(CK, CK, CK), // 9
-      Vector(CR, CY, CR), // 10
-      Vector(CO, CO, CP), // 11
-      Vector(CK, CK, CK), // 12
-      Vector(CY, CY, CB), // 13
-      Vector(CG, CO, CG), // 14
-      Vector(CK, CK, CK), // 15
-      Vector(CB, CR, CB), // 16
-      Vector(CP, CP, CG)  // 17
+    val rowTemplate5: Array[Vector[Int]] = Array(
+      Vector(CB, CY, CY), Vector(CG, CO, CG), Vector(CK, CK, CK), Vector(CB, CR, CB), Vector(CG, CP, CP), Vector(CK, CK, CK),
+      Vector(CY, CR, CR), Vector(CO, CP, CO), Vector(CK, CK, CK), Vector(CY, CB, CY), Vector(CO, CG, CG), Vector(CK, CK, CK),
+      Vector(CR, CB, CB), Vector(CP, CG, CP), Vector(CK, CK, CK), Vector(CR, CY, CR), Vector(CP, CO, CO), Vector(CK, CK, CK)
     )
-    val sZ = 3
+
+    val rowTemplate6: Array[Vector[Int]] = Array(
+      Vector(CK, CK, CK), Vector(CY, CY, CB), Vector(CG, CO, CG), Vector(CK, CK, CK), Vector(CB, CR, CB), Vector(CP, CP, CG),
+      Vector(CK, CK, CK), Vector(CR, CR, CY), Vector(CO, CP, CO), Vector(CK, CK, CK), Vector(CY, CB, CY), Vector(CG, CG, CO),
+      Vector(CK, CK, CK), Vector(CB, CB, CR), Vector(CP, CG, CP), Vector(CK, CK, CK), Vector(CR, CY, CR), Vector(CO, CO, CP)
+    )
+
+    val rowTemplate7: Array[Vector[Int]] = Array(
+      Vector(CP, CO, CO), Vector(CK, CK, CK), Vector(CB, CY, CY), Vector(CG, CO, CG), Vector(CK, CK, CK), Vector(CB, CR, CB),
+      Vector(CG, CP, CP), Vector(CK, CK, CK), Vector(CY, CR, CR), Vector(CO, CP, CO), Vector(CK, CK, CK), Vector(CY, CB, CY),
+      Vector(CO, CG, CG), Vector(CK, CK, CK), Vector(CR, CB, CB), Vector(CP, CG, CP), Vector(CK, CK, CK), Vector(CR, CY, CR)
+    )
+
+    val rowTemplate8: Array[Vector[Int]] = Array(
+      Vector(CR, CY, CR), Vector(CO, CO, CP), Vector(CK, CK, CK), Vector(CY, CY, CB), Vector(CG, CO, CG), Vector(CK, CK, CK),
+      Vector(CB, CR, CB), Vector(CP, CP, CG), Vector(CK, CK, CK), Vector(CR, CR, CY), Vector(CO, CP, CO), Vector(CK, CK, CK),
+      Vector(CY, CB, CY), Vector(CG, CG, CO), Vector(CK, CK, CK), Vector(CB, CB, CR), Vector(CP, CG, CP), Vector(CK, CK, CK)
+    )
+
+    val rowTemplateX = boardSize match
+      case 5 => rowTemplate5
+      case 6 => rowTemplate6
+      case 7 => rowTemplate7
+      case _ => rowTemplate8
+
     var col = 0
     var n = 0
     var thisRow = row
@@ -165,9 +174,9 @@ class HexBoard4():
         n = 0
       end if
 
+      // we use -2 here to allow for top border
       while n < arrayWidth - 1 do
-        val offset = (sZ & 1) * 10 // an odd size requires a vertical shift of the hex grid
-        val hexColor = rowTemplate((thisRow - 2 + offset) % rowTemplate.length)(n % 3)
+        val hexColor = rowTemplateX((thisRow - 2) % rowTemplateX.length)(n % 3)
         setHexColor(Point(n,thisRow),hexColor)
         col += 2
         n += 1
