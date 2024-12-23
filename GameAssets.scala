@@ -56,20 +56,20 @@ object GameAssets:
       .scaleBy(sf, sf)
 
   def gScorePanelBlinkOff(sf: Double): Graphic[Material.ImageEffects] =
-    Graphic(Rectangle(0, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName)))
+    Graphic(Rectangle(0, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf,sf)
 
   def gScorePanelBlinkCylinder(sf: Double): Graphic[Material.ImageEffects] =
-    Graphic(Rectangle(250, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName)))
+    Graphic(Rectangle(250, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf,sf)
 
   def gScorePanelBlinkBlock(sf: Double): Graphic[Material.ImageEffects] =
-    Graphic(Rectangle(500, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName)))
+    Graphic(Rectangle(500, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf,sf)
 
   def gParamsPanel(sf: Double): Graphic[Material.ImageEffects] =
-    Graphic(Rectangle(0, 0, 250, 425), 3, Material.ImageEffects(AssetName(pmAssetName)))
+    Graphic(Rectangle(0, 0, 250, 425), 3, Material.ImageEffects(AssetName(pmAssetName))).scaleBy(sf,sf)
 
-  def gTimeSliderActiveBody(sf: Double): Graphic[Material.ImageEffects] =
+  def gTimeSliderActiveBody(cropHeight: Int, sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(0, 0, 150, 1220), 3, Material.ImageEffects(AssetName(tsAssetName)))
-      .withCrop(0, 25, 50, 1195)
+      .withCrop(0, 25+cropHeight, 50, 1195-cropHeight)
       .scaleBy(sf, sf)
 
   def gTimeSliderActiveTop(sf: Double): Graphic[Material.ImageEffects] =
@@ -77,9 +77,9 @@ object GameAssets:
       .withCrop(0, 0, 50, 25)
       .scaleBy(sf, sf)
 
-  def gTimeSliderInactiveBody(sf: Double): Graphic[Material.ImageEffects] =
+  def gTimeSliderInactiveBody(cropHeight: Int, sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(0, 0, 150, 1220), 3, Material.ImageEffects(AssetName(tsAssetName)))
-      .withCrop(100, 25, 50, 1195)
+      .withCrop(100, 25+cropHeight, 50, 1195-cropHeight)
       .scaleBy(sf, sf)
 
   def gTimeSliderInactiveTop(sf: Double): Graphic[Material.ImageEffects] =

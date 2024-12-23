@@ -358,11 +358,6 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
 
   end present
 
-// FIXME displayPanelDisabled ...
-  def displayPanel(title: String, msg: String, dSF: Double, pType: PanelType): Outcome[SceneUpdateFragment] =
-    Outcome(SceneUpdateFragment.empty)
-  end displayPanel  
-/*---
   def displayPanel(title: String, msg: String, dSF: Double, pType: PanelType): Outcome[SceneUpdateFragment] =
     val boxX = 260
     val boxY = 176
@@ -412,7 +407,7 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
 
 // format: on
   end displayPanel
----*/
+
   def displayResultsPanel(msg: String, dSF: Double): Outcome[SceneUpdateFragment] =
     Outcome(SceneUpdateFragment.empty) // FIXME not implemented yet
   end displayResultsPanel

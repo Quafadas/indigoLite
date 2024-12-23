@@ -476,64 +476,89 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
       end if
     end blockName
 
+    val y0 = (130 * dSF).toInt
     val scorePanel =
       if (bBlinkOn == true) && (model.gameState == GameState.CYLINDER_TURN) then
         // select purple cylinder icon
-        GameAssets.gScorePanelBlinkCylinder(1.0).moveTo(0, 130)
+        GameAssets.gScorePanelBlinkCylinder(dSF).moveTo(0, y0)
       else if (bBlinkOn == true) && (model.gameState == GameState.BLOCK_TURN) then
         // select purple block icon
-        GameAssets.gScorePanelBlinkBlock(1.0).moveTo(0, 130)
+        GameAssets.gScorePanelBlinkBlock(dSF).moveTo(0, y0)
       else
         // normal panel
-        GameAssets.gScorePanelBlinkOff(1.0).moveTo(0, 130)
+        GameAssets.gScorePanelBlinkOff(dSF).moveTo(0, y0)
       end if
     end scorePanel
 
+    val x1 = (14*dSF).toInt
+    val y1 = (190*dSF).toInt
     val cylinderPlayer =
       TextBox((cylinderName).toString(), 220, 50)
         .withColor(RGBA.Black)
         .withFontSize(Pixels(40))
-        .moveTo(14, 190)
+        .scaleBy(dSF,dSF)
+        .moveTo(x1, y1)
 
+    val x2 = (14*dSF).toInt
+    val y2 = (370*dSF).toInt
     val blockPlayer =
       TextBox((blockName).toString(), 220, 50)
         .withColor(RGBA.Black)
         .withFontSize(Pixels(40))
-        .moveTo(14, 370)
+        .scaleBy(dSF,dSF)
+        .moveTo(x2, y2)
 
-    val cylinderScoreX = coordXFromScore(model.gameScore._1)
-    val blockScoreX = coordXFromScore(model.gameScore._2)
+    val cylinderScoreX = (coordXFromScore(model.gameScore._1) * dSF).toInt
+    val blockScoreX = (coordXFromScore(model.gameScore._2) * dSF).toInt
+    val y3 = (250 * dSF).toInt
+    val y4 = (430 * dSF).toInt
 
     val cylinderScore =
       TextBox((model.gameScore._1).toString(), 150, 300)
         .withColor(RGBA.Black)
         .withFontSize(Pixels(100))
-        .moveTo(cylinderScoreX, 250)
+        .scaleBy(dSF,dSF)
+        .moveTo(cylinderScoreX, y3)
     val blockScore =
       TextBox((model.gameScore._2).toString(), 150, 300)
         .withColor(RGBA.Black)
         .withFontSize(Pixels(100))
-        .moveTo(blockScoreX, 430)
+        .scaleBy(dSF,dSF)
+        .moveTo(blockScoreX, y4)
+
+    val x5 = (140 * dSF).toInt
+    val y5 = (670 * dSF).toInt
+    val y6 = (755 * dSF).toInt
+    val y7 = (840 * dSF).toInt
+    val y8 = (925 * dSF).toInt
+    val y9 = (590 * dSF).toInt
+    
+    val paramsPanel = GameAssets.gParamsPanel(dSF).moveTo(0, y9)
+
     val param1 =
       TextBox((model.winningScore).toString(), 100, 70).bold
         .withColor(RGBA.Black)
         .withFontSize(Pixels(60))
-        .moveTo(140, 670)
+        .scaleBy(dSF,dSF)
+        .moveTo(x5, y5)
     val param2 =
       TextBox((model.turnTimer.iTotalTurnTime).toString(), 100, 70).bold
         .withColor(RGBA.Black)
         .withFontSize(Pixels(60))
-        .moveTo(140, 670 + 85)
+        .scaleBy(dSF,dSF)
+        .moveTo(x5, y6)
     val param3 =
       TextBox((model.turnTimer.iCaptorsTurnTime).toString(), 100, 70).bold
         .withColor(RGBA.Black)
         .withFontSize(Pixels(60))
-        .moveTo(140, 670 + 170)
+        .scaleBy(dSF,dSF)
+        .moveTo(x5, y7)
     val param4 =
       TextBox((model.randEventFreq).toString(), 100, 70).bold
         .withColor(RGBA.Black)
         .withFontSize(Pixels(60))
-        .moveTo(140, 670 + 255)
+        .scaleBy(dSF,dSF)
+        .moveTo(x5, y8)
 
     val pB = hexBoard4.pBase // ................... for HighLighter
 
@@ -576,7 +601,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(blockPlayer))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(cylinderScore))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(blockScore))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(GameAssets.gParamsPanel(1.0).moveTo(0, 590)))
+        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(paramsPanel))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(Batch(param1, param2, param3, param4)))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.plusButton.draw))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.minusButton.draw))
@@ -615,10 +640,7 @@ final case class GameSceneViewModel(
     yield this.copy(newGameButton = bn1, plusButton = bn2, minusButton = bn3, turnButton = bn4)
 
   def changeButtonBoundaries(model: FlicFlacGameModel, gvp: GameViewport): GameSceneViewModel =
-    // val dSF = model.scalingFactor
-    // scribe.debug("@@@ dSF:" + dSF)
-    // Current implementation does not require buttons to scale so we override the scaling factor to 1.0
-    val dSF = 1.0
+    val dSF = hexBoard4.scalingFactor
 
     val newNewGameButton =
       Button(

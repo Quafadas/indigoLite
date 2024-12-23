@@ -76,14 +76,29 @@ object TurnTimer:
     val iTimeRemaining = math.max(0, iTurnExpires - iTurnTime)
     val iTimeSpent = iTotalTime - iTimeRemaining
 
-    val T: Double = ((1170 * iTimeSpent) / iTotalTime) + 70
 
-    val dSF = hexBoard4.scalingFactor
-    val scalableX = GameAssets.GameSceneDimensions.right - hexBoard4.pBase.x - 120
+    val dSF = hexBoard4.scalingFactor    
+    val scalableX = hexBoard4.boardSize match
+      case 5 => 1050
+      case 6 => 1050
+      case 7 => 1200
+      case _ => 1200
+
+    val bodyCropMark = hexBoard4.boardSize match
+      case 5 => 270
+      case 6 => 160
+      case 7 => 80
+      case _ => 0 // size 8
+
+    // we need to adjust the body length to compensate for any cropping incurred by size reduction
+    val iBodyLength = 1170 - bodyCropMark
+
+    val T: Double = ((iBodyLength * iTimeSpent) / iTotalTime) + 70
+
     val iSliderXPos = (math.round(scalableX * dSF)).toInt + hexBoard4.pBase.x
     val iBodyTop = (math.round(95 * dSF)).toInt
     val iCapTop = (math.round(T * dSF)).toInt
-    val iWidth = (math.round(52 * dSF)).toInt // changed from 50 to 52 to eliminate sporadic veritcal lines
+    val iWidth = (math.round(52 * dSF)).toInt // changed from 50 to 52 to eliminate sporadic vertical lines
 
     val bCylinder = (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == CYLINDER)
     val bBlock = (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == BLOCK)
@@ -91,10 +106,10 @@ object TurnTimer:
     val content1 =
       if (bCylinder == true) || (bBlock == true) then
         // magenta slider
-        Layer.Content(GameAssets.gTimeSliderActiveBody(dSF).moveTo(iSliderXPos, iBodyTop))
+        Layer.Content(GameAssets.gTimeSliderActiveBody(bodyCropMark, dSF).moveTo(iSliderXPos, iBodyTop))
       else
         // grey slider
-        Layer.Content(GameAssets.gTimeSliderInactiveBody(dSF).moveTo(iSliderXPos, iBodyTop))
+        Layer.Content(GameAssets.gTimeSliderInactiveBody(bodyCropMark, dSF).moveTo(iSliderXPos, iBodyTop))
       end if
     end content1
 
@@ -116,4 +131,4 @@ object TurnTimer:
   end show
 
 end TurnTimer
-//          |+| SceneUpdateFragment(LayerKeys.Background -> Layer.Content(Batch(textGameState)))
+
