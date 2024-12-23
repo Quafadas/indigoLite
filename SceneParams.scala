@@ -328,6 +328,7 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
         // this is the RESPONDER - the ONE AND ONLY time the params marked with ### may be changed
         val newPieceType = if initiatorModel.ourPieceType == CYLINDER then BLOCK else CYLINDER
         val originalPlayerParams = FlicFlacPlayerParams.getParams(context.frameContext.startUpData)
+        val newBoardSize = initiatorModel.boardSize.min(originalPlayerParams.playPams3_BoardSize)
         val newScoreToWin = (initiatorModel.winningScore + originalPlayerParams.playPams4_ScoreToWin) / 2
         val newTurnTimer = (initiatorModel.turnTimer.iTotalTurnTime + originalPlayerParams.playPams5_TurnTime) / 2
         val newCaptorsTimer = (initiatorModel.turnTimer.iCaptorsTurnTime + originalPlayerParams.playPams6_CaptorsTime) / 2
@@ -335,6 +336,7 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
 
         val newModel = initiatorModel.copy(
           responderGameState = GameState.START_CON4,
+          boardSize = newBoardSize, // ................................###
           ourPieceType = newPieceType, // .............................###
           winningScore = newScoreToWin, // ............................###
           turnTimer = TurnTimer(newTurnTimer, newCaptorsTimer), // ....###

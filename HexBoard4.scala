@@ -58,7 +58,7 @@ class HexBoard4():
 ...... q,r,s are cubic coords of hex cell
 ...... xP,yP are display coords for cell (and these are the coords that are scaled)
 */
-
+  var boardSize = 8 // ............................... the size as supplied by the FlicFlacGameModel (default 8)
   val arrayWidth = 9 // .............................. forcing arrayWidth=9 (calculated from sZ=3)
   val arrayHeight = 34 // ............................ forcing arrayHeight=34 (calculated from sZ=3)
   val graphicWidth = 90 // ........................... the width of the graphic crop for each hex
@@ -71,37 +71,26 @@ class HexBoard4():
   var scalingFactor: Double = 1.0 // ................. scaling factor as controlled by +/- buttons
   var hexGridLayer: Layer.Content = Layer.empty // ... Layer recalculated at start and on each +/-
 
+  def create(size: Int) : Unit =
+    boardSize = size
 
-  // start with black board, populates q,r,s (for debugging the helper routine printBoard can follow this line)
-  fillBoard(arrayWidth, arrayHeight, mix(CK))
+    // start with black board, populates q,r,s (for debugging the helper routine printBoard can follow this line)
+    fillBoard(arrayWidth, arrayHeight, mix(CK))
 
-  // The first two rows are an invisible border
-  fillHorizontalBorder(0, 2, arrayWidth, CX ) 
+    // this is the pattern of the board
+    colorBoardHexes(2, arrayWidth, arrayHeight ) 
 
-  // this is the pattern of the board
-  colorBoardHexes(2, arrayWidth, arrayHeight ) 
+    // trim off the four corners (uses q,r,s coords)
+    trimBoard( boardSize, arrayWidth, arrayHeight, CX )
 
-  // first column is border
-  fillVerticalBorder(0, 0, arrayHeight, CX) 
+    // establish extra hexes for homepositions of pieces
+    establishHomeHexes( boardSize, arrayWidth, arrayHeight)
 
-  // last two columns are borders
-  fillVerticalBorder(arrayWidth - 1, 0, arrayHeight, CX) 
-  fillVerticalBorder(arrayWidth - 1, 1, arrayHeight, CX)
+    // establish the paint positions for each hex
+    calculateXsYs(scalingFactor)
 
-  // The last two rows are an invisible border
-  fillHorizontalBorder(arrayHeight - 2, 2, arrayWidth, CX ) 
-
-  // trim off the four corners (uses q,r,s coords)
-  trimBoard( arrayWidth, arrayHeight, CX ) 
-
-  // establish extra hexes for homepositions of pieces
-  establishHomeHexes( arrayWidth, arrayHeight)
-
-  // establish the paint positions for each hex
-  calculateXsYs(scalingFactor)
-
-  // establish the first GridPaintLayer scaled to 1.0
-  calculateGridPaintLayer()
+    // establish the first GridPaintLayer scaled to 1.0
+    calculateGridPaintLayer()
 
   // ########################################################
 
@@ -188,80 +177,74 @@ class HexBoard4():
   end colorBoardHexes
 
   /*
-  fillHorizontalBorder is used to set the color of one or more single horizontal lines of hexes.
-  the column coordinate jumps by 2 because odd columns are offset downwards by half a hexagon
-  This function is typically used to overwrite a normal colored hexagon with CX that makes the
-  hexagon invisible
+  getQRSofTopCentreHex supplies the cubic cordinates of the border top centre hex
    */
-  def fillHorizontalBorder(
-      row: Int,
-      height: Int,
-      arrayWidth: Int,
-      color: Int
-  ): Unit =
-    //  scribe.debug("fillHorizontalBorder row:" + row + " height:" + height + " color:" + color)
-    var thisRow = row
-    val lastRow = row + height - 1
-    while thisRow <= lastRow do
-      var col = thisRow & 1
-      var n = 0
-      while n < arrayWidth do
-        setHexColor(Point(n,thisRow),color)
-        col += 2
-        n += 1
-      end while
-      thisRow += 1
-    end while
-  end fillHorizontalBorder
-
-  /*
-  fillVerticalBorder is used to set the color of one vertical line of hexes.
-  the column coordinate jumps is adjusted because odd columns are offset downwards by half a hexagon
-  This function is typically used to overwrite a normal colored hexagon with CX that makes the
-  hexagon invisible
-   */
-
-  def fillVerticalBorder(col: Int, row: Int, height: Int, color: Int): Unit =
-    //  scribe.debug("fillVerticalBorder col:" + col + " row:" + row + " height:" + height)
-    var y = row & 1
-    while y < height do
-      setHexColor(Point(col,y),color)
-      y += 2
-    end while
-  end fillVerticalBorder
-
-  /*
-  getQRSofTopCentreHex supplies the cubic cordinates of the top centre hex
-   */
-  def getQRSofTopCentreHex(width: Int, height: Int): (Int, Int, Int) =
+  def getQRSofTopCentreHex(boardSize: Int, width: Int, height: Int): (Int, Int, Int) =
     val x: Int = (width - 1) / 2
-    val y: Int = if ((width - 1) & 1) == 1 then 1 else 0
+    //val y: Int = if ((width - 1) & 1) == 1 then 1 else 0
+    val y = boardSize match
+      case 5 => 3 // Small
+      case 6 => 2 // Medium
+      case 7 => 1 // Large
+      case _ => 0 // Extra Large
     return (hexArray(x)(y).q, hexArray(x)(y).r, hexArray(x)(y).s)
   end getQRSofTopCentreHex
 
+  def getQRSofTopLeftHex(boardSize :Int, width: Int, height: Int): (Int, Int, Int) = 
+    val topQRS = getQRSofTopCentreHex(boardSize, width, height)
+    val topLeft = (topQRS._1-boardSize, topQRS._2+boardSize, topQRS._3)
+    topLeft
+  end getQRSofTopLeftHex
+
+  def getQRSofTopRightHex(boardSize :Int, width: Int, height: Int): (Int, Int, Int) = 
+    val topQRS = getQRSofTopCentreHex(boardSize, width, height)
+    val topRight = (topQRS._1+boardSize, topQRS._2, topQRS._3-boardSize)
+    topRight
+  end getQRSofTopRightHex
+
   /*
-  getQRSofBottomCentreHex supplies the cubic cordinates of the bottom centre hex
+  getQRSofBottomCentreHex supplies the cubic cordinates of the border bottom centre hex
    */
-  def getQRSofBottomCentreHex(width: Int, height: Int): (Int, Int, Int) =
+  def getQRSofBottomCentreHex(boardSize: Int, width: Int, height: Int): (Int, Int, Int) =
     val x: Int = (width - 1) / 2
-    val y: Int = if ((width - 1) & 1) == 1 then height - 1 else height - 2
+    //val y: Int = if ((width - 1) & 1) == 1 then height - 1 else height - 2
+    val y = boardSize match
+      case 5 => height - 11 // Small
+      case 6 => height - 8 // Medium
+      case 7 => height - 5 // Large
+      case _ => height - 2 // Extra Large
+
     return (hexArray(x)(y).q, hexArray(x)(y).r, hexArray(x)(y).s)
   end getQRSofBottomCentreHex
 
+  def getQRSofBottomLeftHex(boardSize :Int, width: Int, height: Int): (Int, Int, Int) = 
+    val bottomQRS = getQRSofBottomCentreHex(boardSize, width, height)
+    val bottomLeft= (bottomQRS._1-boardSize, bottomQRS._2, bottomQRS._3+boardSize)
+    bottomLeft
+  end getQRSofBottomLeftHex
+
+  def getQRSofBottomRightHex(boardSize :Int, width: Int, height: Int): (Int, Int, Int) = 
+    val bottomQRS = getQRSofBottomCentreHex(boardSize, width, height)
+    val bottomRight = (bottomQRS._1+boardSize, bottomQRS._2-boardSize, bottomQRS._3)
+    bottomRight
+  end getQRSofBottomRightHex
+
   /*
-  trimBoard sets the color of the 4 sets of hexes in each corner of the rectangular array such
+  trimBoard sets the color of the border hexes of the rectangular array such
   that the remaining hexes that have not been touched, form a large hexagon. This function
   is used help form the inital state of the game board
    */
-  def trimBoard(width: Int, height: Int, color: Int): Unit =
-    val topQRS = getQRSofTopCentreHex(width, height)
-    val bottomQRS = getQRSofBottomCentreHex(width, height)
+  def trimBoard(size: Int, width: Int, height: Int, color: Int): Unit =
+    val topQRS = getQRSofTopCentreHex(size, width, height)
+    val bottomQRS = getQRSofBottomCentreHex(size,width, height)
+    val leftQRS = getQRSofTopLeftHex(size, width, height)
+    val rightQRS = getQRSofTopRightHex(size, width, height)
     var y = 0
     while y < height do
       var x = 0
       while x < width do
         val hh = hexArray(x)(y)
-        if (hh.s >= topQRS._3) || (hh.r <= topQRS._2) || (hh.s <= bottomQRS._3) || (hh.r >= bottomQRS._2) then
+        if (hh.s >= topQRS._3) || (hh.r <= topQRS._2) || (hh.s <= bottomQRS._3) || (hh.r >= bottomQRS._2) || (hh.q <= leftQRS._1) || (hh.q >= rightQRS._1)then
           setHexColor(Point(x,y),color)
         end if
         x += 1
@@ -273,7 +256,7 @@ class HexBoard4():
   /* 
   establishHomeHexes sets up extra black hex for the starting point for cylinder pieces
    */
-  def establishHomeHexes(width: Int, height: Int): Unit =
+  def establishHomeHexes(size: Int, width: Int, height: Int): Unit =
     setHexColor(getCylinderHomePos(CB), CB)
     setHexColor(getCylinderHomePos(CG), CG)
     setHexColor(getCylinderHomePos(CY), CY)
@@ -451,32 +434,52 @@ class HexBoard4():
 
 
   def getCylinderHomePos(id: Int): Point =
-    val p1 = Point(0,1)
-    val p2 = Point(arrayWidth-2,1)
-    val p3 = Point(0, arrayHeight-3)
-    val p4 = Point(arrayWidth-2, arrayHeight-3)
+    val p1 = boardSize match
+      case 5 => 
+        if (id == CR) then Point(2,2) else Point(1,2)
+      case 6 => Point(1,1)
+      case 7 => Point(1,1)
+      case _ => Point(0,1)
+    
+    val p4 = boardSize match
+      case 5 => 
+        if (id == CG) then Point(arrayWidth-2, arrayHeight-10) else Point(arrayWidth-3, arrayHeight-10)
+      case 6 => Point(arrayWidth-3, arrayHeight-7)
+      case 7 => Point(arrayWidth-2, arrayHeight-5)
+      case _ => Point(arrayWidth-2, arrayHeight-3)
+
     id match
-        case CB => p1 + Point(1,3)  // Blue
-        case CR => p1 + Point(1,2)  // Red
-        case CY => p1 + Point(2,1)  // Yellow
-        case CO => p4 + Point(-1,-1)  // Orange
-        case CG => p4 + Point(-1,-2) // Green
-        case CP => p4 + Point(0,-3) // Purple
+        case CB => p1 + Point(1,3) // .......Blue
+        case CR => p1 + Point(1,2) // .......Red
+        case CY => p1 + Point(2,1) // .......Yellow
+        case CO => p4 + Point(-1,-1) // .....Orange
+        case CG => p4 + Point(-1,-2) // .....Green
+        case CP => p4 + Point(0,-3) // ......Purple
     end match
   end getCylinderHomePos
 
   def getBlockHomePos(id: Int): Point =
-    val p1 = Point(0,1)
-    val p2 = Point(arrayWidth-2,1)
-    val p3 = Point(0, arrayHeight-3)
-    val p4 = Point(arrayWidth-2, arrayHeight-3)
+    val p2 = boardSize match
+      case 5 => 
+        if (id==CG) then Point(arrayWidth-2,2) else Point(arrayWidth-3,2)
+      case 6 => Point(arrayWidth-3,1)
+      case 7 => Point(arrayWidth-2,1)
+      case _ => Point(arrayWidth-2,1)      
+    
+    val p3 = boardSize match
+      case 5 => 
+        if (id==CR) then Point(2, arrayHeight-10) else Point(1, arrayHeight-10)
+      case 6 => Point(1, arrayHeight-7)
+      case 7 => Point(1, arrayHeight-5)
+      case _ => Point(0, arrayHeight-3)      
+
     id match
-        case CB => p3 + Point(1,-3)  // Blue
-        case CR => p3 + Point(1,-2) // Red
-        case CY => p3 + Point(2,-1) // Yellow
-        case CO => p2 + Point(-1,1)  // Orange
-        case CG => p2 + Point(-1,2)  // Green
-        case CP => p2 + Point(0,3)  // Purple
+        case CB => p3 + Point(1,-3) // .....Blue
+        case CR => p3 + Point(1,-2) // .....Red
+        case CY => p3 + Point(2,-1) // .....Yellow
+        case CO => p2 + Point(-1,1) // .....Orange
+        case CG => p2 + Point(-1,2) // .....Green
+        case CP => p2 + Point(0,3) // ......Purple
     end match
   end getBlockHomePos
 

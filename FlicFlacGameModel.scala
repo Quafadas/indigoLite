@@ -80,6 +80,9 @@ object FlicFlacGameModel:
     val turnTimer = TurnTimer(playerParams.playPams5_TurnTime, playerParams.playPams6_CaptorsTime)
     val highLighter = new HighLighter(false, Point(0, 0))
 
+    // create the hexboard
+    hexBoard4.create(boardSize)
+
     FlicFlacGameModel(
       sOurName,
       sOppoName,
@@ -205,6 +208,10 @@ object FlicFlacGameModel:
     val captorsTime = previousModel.turnTimer.iCaptorsTurnTime
     val turnTimer1 = TurnTimer(turnTime, captorsTime)
     val turnTimer2 = TurnTimer.restartForTurn(turnTimer1)
+
+    // create the hexboard
+    hexBoard4.create(iBoardSize)
+
     FlicFlacGameModel(
       sOurName,
       sOppoName,
