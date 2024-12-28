@@ -199,7 +199,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
                     val r = hexBoard4.hexArray(w)(h).r
                     val s = hexBoard4.hexArray(w)(h).s
                     scribe.debug(
-                      "@@@ Magenta hexboard3: (w,h) x,y,q,r,s = (" + w + "," + h + ") : "
+                      "@@@ Magenta hexboard4: (ax,ay) x,y,q,r,s = (" + w + "," + h + ") : "
                         + x + "," + y + " : " + q + "," + r + "," + s
                     )
                     FlicFlacGameModel.modify(model, None, None)
