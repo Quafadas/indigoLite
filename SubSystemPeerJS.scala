@@ -359,8 +359,8 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
   end present
 
   def displayPanel(title: String, msg: String, dSF: Double, pType: PanelType): Outcome[SceneUpdateFragment] =
-    val boxX = 260
-    val boxY = 176
+    val boxX = (260 * dSF).toInt
+    val boxY = (176 * dSF).toInt
 
     val iSF = (10 * dSF).toInt // dSF is one of 1.0 0.9 0.8 0.75 0.67 0.5 0.33
 
