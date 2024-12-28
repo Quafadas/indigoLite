@@ -152,8 +152,8 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
       model: SceneModel,
       viewModel: SceneViewModel
   ): Outcome[SceneUpdateFragment] =
-    val width = GameAssets.GameSceneDimensions.width
-    val height = GameAssets.GameSceneDimensions.height
+    val width = GameAssets.GetGameSceneDimensions(8).width // FIXME assumed size 8
+    val height = GameAssets.GetGameSceneDimensions(8).height // FIXME assumed size 8
 
     val n1 = context.frameContext.startUpData.flicFlacBootData.n1
     val n2 = context.frameContext.startUpData.flicFlacBootData.n2

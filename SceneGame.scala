@@ -257,7 +257,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
               scribe.debug("@@@ ViewPortResize from scratch")
               val w = gameViewPort.width - hexBoard4.pBase.x
               val h = gameViewPort.height - hexBoard4.pBase.y
-              dSF = GetScaleFactor(w, h, GameAssets.GameSceneDimensions)
+              dSF = GetScaleFactor(w, h, GameAssets.GetGameSceneDimensions(model.boardSize))
               scribe.debug("@@@ updateModel ViewportResize w:h->s " + w + ":" + h + "->" + dSF)
             else
               dSF = hexBoard4.scalingFactor
@@ -562,12 +562,12 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
 
     val pB = hexBoard4.pBase // ................... for HighLighter
 
-    val width = GameAssets.GameSceneDimensions.width
-    val height = GameAssets.GameSceneDimensions.height
+    val width = GameAssets.GetGameSceneDimensions(model.boardSize).width
+    val height = GameAssets.GetGameSceneDimensions(model.boardSize).height
 
-    val iHeight = (math.round(GameAssets.GameSceneDimensions.height * dSF)).toInt
+    val iHeight = (math.round(GameAssets.GetGameSceneDimensions(model.boardSize).height * dSF)).toInt
     val iLeftWidth = hexBoard4.pBase.x
-    val iRightWidth = (math.round(GameAssets.GameSceneDimensions.right - hexBoard4.pBase.x) * dSF).toInt
+    val iRightWidth = (math.round(GameAssets.GetGameSceneDimensions(model.boardSize).right - hexBoard4.pBase.x) * dSF).toInt
     val rLeft = Rectangle(0, 0, iLeftWidth, iHeight)
     val rRight = Rectangle(Point(iLeftWidth, 0), Size(iRightWidth, iHeight))
     val rCorners = Rectangle(Point(iLeftWidth, 0), Size(iRightWidth + hexBoard4.pBase.x, iHeight))
@@ -693,7 +693,7 @@ object GameSceneViewModel:
     GameSceneViewModel(
       None, // ... we have no last position of the pointer recorded
 
-      GameViewport(GameAssets.GameSceneDimensions.width, GameAssets.GameSceneDimensions.height),
+      GameViewport(GameAssets.GetGameSceneDimensions(8).width, GameAssets.GetGameSceneDimensions(8).height), // FIXME how to get model.sizeto here instead of 8
       Button(
         buttonAssets = GameAssets.buttonNewGameAssets(1.0),
         bounds = newGameBounds,

@@ -27,13 +27,17 @@ object GameAssets:
   scribe.debug("@@@ Object GameAssets START")
 
   /* Game rectangle found by experimentation.
-     This rectangle dimensions also laid out in html file
-     This is the "master" setting for the game dimensions
-     for all of the scala code
+     The largest rectangle dimensions (size 8) also laid out in html file
    */
 
-  val GameSceneDimensions = Rectangle(0, 0, 1580, 1300)
-
+  def GetGameSceneDimensions(boardSize: Int) : Rectangle = 
+    boardSize match
+      case 5 => Rectangle(0, 0, 1150, 1250)
+      case 6 => Rectangle(0, 0, 1200, 1250)
+      case 7 => Rectangle(0, 0, 1350, 1250)
+      case _ => Rectangle(0, 0, 1500, 1300)
+  end GetGameSceneDimensions
+      
   def get(): Set[AssetType] =
     Set(
       AssetType.Image(AssetName(hxAssetName), AssetPath(hxAssetPath)),
@@ -191,20 +195,20 @@ object GameAssets:
   def cornerLayers(r: Rectangle, sf: Double, cornerColor: RGBA): Batch[Graphic[ImageEffects]] =
     val newWidth20 = ((r.width - 20).toDouble * sf).toInt
     val newHeight20 = ((r.height - 20).toDouble * sf).toInt
-    val layerC1 = (GameAssets.cornerTopLeft)
-      .moveTo(r.left, r.top)
-      .modifyMaterial(_.withTint(cornerColor))
+    //val layerC1 = (GameAssets.cornerTopLeft)
+    //  .moveTo(r.left, r.top)
+    //  .modifyMaterial(_.withTint(cornerColor))
     val layerC2 = (GameAssets.cornerTopRight)
       .moveTo(newWidth20, r.top)
       .modifyMaterial(_.withTint(cornerColor))
     val layerC3 = (GameAssets.cornerBottomLeft)
-      .moveTo(r.left, newHeight20)
+      .moveTo(0, newHeight20)
       .modifyMaterial(_.withTint(cornerColor))
     val layerC4 = (GameAssets.cornerBottomRight)
       .moveTo(newWidth20, newHeight20)
       .modifyMaterial(_.withTint(cornerColor))
 
-    Batch(layerC1, layerC2, layerC3, layerC4)
+    Batch(layerC2, layerC3, layerC4)
   end cornerLayers
 
   def scaleButtonBounds(r: Rectangle, sf: Double): Rectangle =
