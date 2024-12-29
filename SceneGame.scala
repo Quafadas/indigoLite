@@ -55,7 +55,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
             hexPosn match
               case Some(pos) =>
                 // Pointer Down, Pos on Grid
-                checkTurn(model, "PDOWN")
+                checkTurnValidAndThrow(model, "Pointer DOWN event") // throws exception if out of turn
                 FlicFlacGameModel.findPieceSelected(model) match
                   case Some(piece) =>
                     // Pointer Down, Pos on Grid, Piece Selected
@@ -107,25 +107,29 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
 
               case None =>
                 // Pointer Down, Pos off Grid
-                FlicFlacGameModel.findPieceSelected(model) match
-                  case Some(piece) =>
-                    // Pointer Down, Pos off Grid, Piece Selected <<##F##>>
-                    dMsg = "##F##"
-                    scribe.debug("@@@ PointerEvent " + dMsg)
-                    val newHL = model.highLighter.shine(false)
-                    val updatedPiece = Piece.setPosDeselect(piece, piece.pHomePos)
-                    FlicFlacGameModel.modify(model, Some(updatedPiece), Some(newHL))
+                if ( checkTurnValid(model) ) then 
+                  FlicFlacGameModel.findPieceSelected(model) match
+                    case Some(piece) =>
+                      // Pointer Down, Pos off Grid, Piece Selected <<##F##>>
+                      dMsg = "##F##"
+                      scribe.debug("@@@ PointerEvent " + dMsg)
+                      val newHL = model.highLighter.shine(false)
+                      val updatedPiece = Piece.setPosDeselect(piece, piece.pHomePos)
+                      // clear any panel showing
+                      FlicFlacGameModel.modify(model, Some(updatedPiece), Some(newHL)).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("", "")))
 
-                  case None =>
-                    // Pointer Down, Pos off Grid, No Piece Selected <<##G##>>
-                    dMsg = "##G##"
-                    scribe.debug("@@@ PointerEvent " + dMsg)
-                    val newHL = model.highLighter.shine(false)
-                    FlicFlacGameModel
-                      .modify(model, None, Some(newHL))
-                      .addGlobalEvents(
-                        Freeze.PanelContent(PanelType.P_INVISIBLE, ("", ""))
-                      ) // this clears any panel showing
+                    case None =>
+                      // Pointer Down, Pos off Grid, No Piece Selected <<##G##>>
+                      dMsg = "##G##"
+                      scribe.debug("@@@ PointerEvent " + dMsg)
+                      val newHL = model.highLighter.shine(false)
+                      // clear any panel showing
+                      FlicFlacGameModel.modify(model, None, Some(newHL)).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("", "")))
+                    end match // findPieceSelected
+                else
+                  // although out of turn, the player is allowed to clear the local error panel (no msg sent to opponent)
+                  Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("", "")))
+                end if
             end match // hexXYCoordsFromDisplayXY
 
           case e: PointerEvent.PointerUp =>
@@ -134,6 +138,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
             hexPosn match
               case Some(pos) =>
                 // Pointer Up, Pos on Grid
+                checkTurnValidAndThrow(model, "Pointer UP event") // throws exception if out of turn
                 FlicFlacGameModel.findPieceSelected(model) match
                   case Some(piece) =>
                     // Pointer Up, Pos on Grid, Piece Selected
@@ -207,31 +212,35 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
                 end match // findPieceSelected
 
               case None =>
-                // Pointer Up, Pos off Grid
-                FlicFlacGameModel.findPieceSelected(model) match
-                  case Some(piece) =>
-                    // Pointer Up, Pos off Grid, Piece Selected
-                    dMsg = "##M##"
-                    scribe.debug("@@@ PointerEvent " + dMsg)
-                    val newHL = model.highLighter.shine(false)
-                    val updatedPiece = Piece.setPosDeselect(piece, piece.pCurPos)
-                    FlicFlacGameModel.modify(model, Some(updatedPiece), Some(newHL)).flatMap { updatedModel =>
-                      val newPieces = Melee(updatedModel).combat(updatedModel)
-                      FlicFlacGameModel.modifyPieces(updatedModel, newPieces)
-                    }
+                if (checkTurnValid(model))
+                  // Pointer Up, Pos off Grid
+                  FlicFlacGameModel.findPieceSelected(model) match
+                    case Some(piece) =>
+                      // Pointer Up, Pos off Grid, Piece Selected
+                      dMsg = "##M##"
+                      scribe.debug("@@@ PointerEvent " + dMsg)
+                      val newHL = model.highLighter.shine(false)
+                      val updatedPiece = Piece.setPosDeselect(piece, piece.pCurPos)
+                      FlicFlacGameModel.modify(model, Some(updatedPiece), Some(newHL)).flatMap { updatedModel =>
+                        val newPieces = Melee(updatedModel).combat(updatedModel)
+                        FlicFlacGameModel.modifyPieces(updatedModel, newPieces).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("", "")))
+                      }
 
-                  case None =>
-                    // Pointer Up, Pos off Grid, No piece selected
-                    dMsg = "##N##"
-                    scribe.debug("@@@ PointerEvent " + dMsg)
-                    val newHL = model.highLighter.shine(false)
-                    FlicFlacGameModel.modify(model, None, Some(newHL))
-                end match // findPieceSelected
-
+                    case None =>
+                      // Pointer Up, Pos off Grid, No piece selected
+                      dMsg = "##N##"
+                      scribe.debug("@@@ PointerEvent " + dMsg)
+                      val newHL = model.highLighter.shine(false)
+                      FlicFlacGameModel.modify(model, None, Some(newHL)).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("", "")))
+                  end match // findPieceSelected
+                else
+                  // although out of turn, the player is allowed to clear the local error panel (no msg sent to opponent)
+                  Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("", "")))
+                end if                
             end match // hexXYCoordsFromDisplayXY
 
           case ButtonNewGameEvent =>
-            checkTurn(model, "NEWGAME")
+            checkTurnValidAndThrow(model, "Button NEW GAME Event") // throws exception if out of turn
             val newModel = FlicFlacGameModel.reset(model)
             FlicFlacGameModel.modify(newModel, None, None)
 
@@ -271,8 +280,8 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
             FlicFlacGameModel.modify(newModel, None, None)
 
           case ButtonTurnEvent.Occurence() =>
+            checkTurnValidAndThrow(model, "Button NEW TURN Event") // throws exception if out of turn
             scribe.debug("@@@ ButtonTurnEvent")
-            checkTurn(model, "BTURN")
             val emptySpots = Spots(Set.empty)
             val newScore = model.pieces.extraTurnScoring(model)
             val captors = Melee(model).detectCaptors(model)
@@ -331,17 +340,18 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
               end if
             end if
 
-          // Keyboard Interface for testing purposes only ...
+          // FIXME ... Keyboard Interface for testing purposes only ...
           case k: KeyboardEvent.KeyDown =>
             if k.keyCode == Key.ADD then Outcome(model).addGlobalEvents(ButtonPlusEvent)
             else if k.keyCode == Key.SUBTRACT then Outcome(model).addGlobalEvents(ButtonMinusEvent)
             else if k.keyCode == Key.ENTER then Outcome(model).addGlobalEvents(ButtonTurnEvent.Occurence())
             else if k.keyCode == Key.F3 then Outcome(model).addGlobalEvents(SceneEvent.Previous)
             else if k.keyCode == Key.F4 then
-              Outcome(model).addGlobalEvents(
-                Freeze.PanelContent(PanelType.P_ERROR, ("Error", "Test Error from GAME FKEY_F4"))
-              )
-            else Outcome(model)
+              // ...
+              Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, ("Error", "Test Error from GAME FKEY_F4")))
+            else 
+              // ...
+              Outcome(model)
             end if
 
           case FrameTick =>
@@ -383,14 +393,27 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
 
   end updateModel
 
-  def checkTurn(model: FlicFlacGameModel, errPos: String): Unit =
-    val bCylinder = (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == BLOCK)
-    val bBlock = (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == CYLINDER)
-    if (bCylinder == true) || (bBlock == true) then
+  def checkTurnValidAndThrow(model: FlicFlacGameModel, errPos: String): Unit =
+    val bBadCylinder = (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == BLOCK)
+    val bBadBlock = (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == CYLINDER)
+    if (bBadCylinder == true) || (bBadBlock == true) then
       // warn user palying out of turn
       throw new Exception(errPos + " ... Please wait for your turn")
     end if
-  end checkTurn
+  end checkTurnValidAndThrow
+
+  def checkTurnValid(model: FlicFlacGameModel): Boolean =
+    val bBadCylinder = (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == BLOCK)
+    val bBadBlock = (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == CYLINDER)
+    if (bBadCylinder == true) || (bBadBlock == true) then
+      // warn user invalid event, playing out of turn
+      return false 
+    else
+      // valid event
+      return true 
+    end if
+  end checkTurnValid
+
 
   def increaseScaleFactor(oldSF: Double): Double =
     val newSF =
