@@ -39,6 +39,8 @@ object TurnTimer:
     end if
   end isActive
 
+  // FIXME ... somewhere here we need to implement turn timer disabled by html setting = 0 !!!
+
   def expired(tt: TurnTimer): Boolean =
     if (tt.iThisTurnTime == 0) || (tt.iThisTurnExpires == 0) then
       // not expired and not active

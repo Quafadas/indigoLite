@@ -23,7 +23,7 @@
     <div id="readResults" class="configParams">
       <div>
         <i>1) Enter your name</i><br>
-        <span title="This name is needed by your opponent to establish the game link.">
+        <span title="This name is needed by your opponent to establish the game link. This unique name must be different from your opponents name and will be used to establish the game link.">
           <div id="errorMsg1" class="configErrorMsg"><b>Invalid Name</b><br>
             Your name should be at least 3 characters long<br>
           </div>
@@ -36,7 +36,7 @@
 
       <div>
         <i>2) Enter your opponent&apos;s name</i><br>
-        <span title="This name is needed by you to establish the game link.">
+        <span title="This unique name, provided by your opponent, is needed to establish the game link. It must be different from your name.">
           <div id="errorMsg2" class="configErrorMsg"><b>Invalid Name</b><br>
             Your opponent&apos;s name should be at least 3 characters long and different from your name<br> 
           </div>
@@ -51,7 +51,7 @@
         <i>3) Select board size</i><br>
         <fieldset>
           <div>
-            <span title="Select the best size that suits your screen">
+            <span title="Select the best size that suits your screen. The final, negotiated, board size is the smallest of your board size and your opponent&apos;s board size.">
               <div id="errorMsg3" class="configErrorMsg"><b>Invalid Board Size</b><br>
                 Select one of Small, Medium, Large or Extra Large to specify your preferred board size.<br>
               </div>
@@ -81,7 +81,7 @@
       <div>
         <table class ="borderless">        
           <td class ="borderless">
-            <span title="This is the number of captures you need to win. Remember you must win by at least two clear captures.">
+            <span title="This is the number of captures you need to win. The negotiated version of this parameter is the average between your entry and your opponent&apos;s entry. Remember you must win by at least two clear captures.">
               <div id="errorMsg4A" class="configErrorMsg"><b>Invalid target set as Final Score</b><br>
                 The score to win needs to be set as a non-zero positive integer.<br>
               </div>
@@ -99,7 +99,7 @@
       <div>
         <table class ="borderless">        
           <td class ="borderless">
-            <span title="This is the number of seconds allowed for each turn. A value of zero disables this timer">
+            <span title="This is the number of seconds allowed for each turn. The negotiated version of this parameter is the average between your entry and your opponent&apos;s entry. A value of zero disables this timer">
               <div id="errorMsg4B" class="configErrorMsg"><b>Invalid Turn Time</b><br>
                 The turn time must be set as as a non-zero positive integer, <br>
                 representing the maximum time allowed in seconds for each turn.<br>
@@ -119,7 +119,7 @@
       <div>
         <table class ="borderless">        
           <td class ="borderless">
-            <span title="This is the number of seconds allowed for an extended turn after a successful capture. It is suggested to make this half the turn timer above. Once again, a value of zero disables this timer.">
+            <span title= "This is the number of seconds allowed for an extended turn after a successful capture. It is suggested to make this half the turn timer above. The negotiated version of this parameter is the average between your entry and your opponent&apos;s entry. A value of zero disables this timer.">
               <div id="errorMsg4C" class="configErrorMsg"><b>Invalid Captor&apos;s Turn Time</b><br>
                 The captor&apos;s turn time must be set as as a non-zero positive integer, <br>
                 representing the maximum time allowed in seconds for extra turns.<br>
@@ -143,7 +143,7 @@
               This is an integer representing the percentage probability,<br>
               where 0 <= probability <= 100 <br>
             </div>
-            <span title="This is the percentage probabilty that a random event will occur. A value of zero prohibits these occurences.">
+            <span title="This is the percentage probabilty that a random event will occur. The negotiated version of this parameter is the average between your entry and your opponent&apos;s entry. A value of zero prohibits these occurences.">
               <label for="randEventProb" class="configLabel">Random Event Probability:</label>
               <input id="randEventProb" class="configNumberValue" type="number" name="randEventProb">              
             </span>
