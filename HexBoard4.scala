@@ -96,6 +96,7 @@ class HexBoard4():
 
     // establish the first GridPaintLayer scaled to 1.0
     calculateGridPaintLayer()
+  end create
 
   // ########################################################
 

@@ -375,14 +375,13 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
       case 5  => (((8 + (6 * (msg.length()))).max(500)), 90, 30, 10, 50, 70)
       case _  => (((5 + (5 * (msg.length()))).max(400)), 60, 20, 8, 34, 45)
 
-    val borderColour = 
+    val borderColour =
       if (pType == PanelType.P_RESULTS) || (pType == PanelType.P_HINT) then
         // sets border, title and text to black
         RGBA.Black
       else
         // sets border and title to red, but text remains black
         RGBA.Red
-
 
     val textError3 =
       if (pType == PanelType.P_RESULTS) || (pType == PanelType.P_HINT) then

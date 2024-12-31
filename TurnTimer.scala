@@ -78,8 +78,7 @@ object TurnTimer:
     val iTimeRemaining = math.max(0, iTurnExpires - iTurnTime)
     val iTimeSpent = iTotalTime - iTimeRemaining
 
-
-    val dSF = hexBoard4.scalingFactor    
+    val dSF = hexBoard4.scalingFactor
     val scalableX = hexBoard4.boardSize match
       case 5 => 1050
       case 6 => 1050
@@ -133,4 +132,3 @@ object TurnTimer:
   end show
 
 end TurnTimer
-
