@@ -289,9 +289,9 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
             conn.foreach(_.close())
             Outcome(())
 
-          case Freeze.PanelContent(typeOfPanel, messageToDisplay) =>
-            peerJsPanel = (typeOfPanel, messageToDisplay)
-            scribe.debug("@@@ SubSystemPeerJS Freeze.PanelContent")
+          case Freeze.PanelContent(typeOfPanel, titleAndMessageToDisplay) =>
+            peerJsPanel = (typeOfPanel, titleAndMessageToDisplay)
+            scribe.debug("@@@ SubSystemPeerJS Freeze.PanelContent: " + typeOfPanel.toString())
             Outcome(())
 
           case _ =>
@@ -350,6 +350,8 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
     peerJsPanel match
       case (PanelType.P_ERROR, _) =>
         displayPanel(title, msg, dSF, PanelType.P_ERROR)
+      case (PanelType.P_HINT, _) =>
+        displayPanel(title, msg, dSF, PanelType.P_HINT)
       case (PanelType.P_RESULTS, _) =>
         displayPanel(title, msg, dSF, PanelType.P_RESULTS)
       case _ => // including P_INVISIBLE
@@ -373,15 +375,24 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
       case 5  => (((8 + (6 * (msg.length()))).max(500)), 90, 30, 10, 50, 70)
       case _  => (((5 + (5 * (msg.length()))).max(400)), 60, 20, 8, 34, 45)
 
+    val borderColour = 
+      if (pType == PanelType.P_RESULTS) || (pType == PanelType.P_HINT) then
+        // sets border, title and text to black
+        RGBA.Black
+      else
+        // sets border and title to red, but text remains black
+        RGBA.Red
+
+
     val textError3 =
-      if pType == PanelType.P_RESULTS then
+      if (pType == PanelType.P_RESULTS) || (pType == PanelType.P_HINT) then
         TextBox(title, boxW - 16, boxH - 16).alignCenter.bold
-          .withColor(RGBA.Red)
+          .withColor(borderColour)
           .withFontSize(Pixels(titleFontSize))
           .moveTo(boxX + 8, boxY + 8)
       else
         TextBox("*** FlicFlac ERROR ***", boxW - 16, boxH - 16).alignCenter.bold
-          .withColor(RGBA.Red)
+          .withColor(borderColour)
           .withFontSize(Pixels(titleFontSize))
           .moveTo(boxX + 8, boxY + 8)
       end if
@@ -400,17 +411,13 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
 
 // format: off
 
-    Outcome(SceneUpdateFragment(LayerKeys.Overlay -> Layer.Content(Shape.Box(Rectangle(boxX, boxY, boxW, boxH), Fill.Color(RGBA.Red))))
+    Outcome(SceneUpdateFragment(LayerKeys.Overlay -> Layer.Content(Shape.Box(Rectangle(boxX, boxY, boxW, boxH), Fill.Color(borderColour))))
         |+| SceneUpdateFragment(LayerKeys.Overlay -> Layer.Content(Shape.Box(Rectangle(boxX + 4, boxY + 4, boxW - 8, boxH - 8), Fill.Color(RGBA.Cyan))))
         |+| SceneUpdateFragment(LayerKeys.Overlay -> Layer.Content(Batch(textError3, textError4, textError5)))
     )
 
 // format: on
   end displayPanel
-
-  def displayResultsPanel(msg: String, dSF: Double): Outcome[SceneUpdateFragment] =
-    Outcome(SceneUpdateFragment.empty) // FIXME not implemented yet
-  end displayResultsPanel
 
   def decodeRxJsonObject(data: js.Object, errNo: Int): FlicFlacGameModel =
     val str = js.JSON.stringify(data)

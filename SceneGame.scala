@@ -385,6 +385,10 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
           case _ =>
             Outcome(model)
       catch
+        case h: HintException =>
+          scribe.error("SceneGame updateModel " + h.getMessage())
+          Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_HINT, ("*** FlicFlac Hint ***", h.getMessage())))
+
         case t: Throwable =>
           scribe.error("SceneGame updateModel " + t.getMessage())
           Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, ("Error", t.getMessage())))
@@ -398,7 +402,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
     val bBadBlock = (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == CYLINDER)
     if (bBadCylinder == true) || (bBadBlock == true) then
       // warn user palying out of turn
-      throw new Exception(errPos + " ... Please wait for your turn")
+      throw new HintException(errPos + " ... Please wait for your turn")
     end if
   end checkTurnValidAndThrow
 
@@ -772,3 +776,5 @@ end constructResults
 object FlicFlacGameUpdate:
   case class Info(ffgm: FlicFlacGameModel) extends GlobalEvent
 end FlicFlacGameUpdate
+
+class HintException(s: String) extends Exception(s) {}

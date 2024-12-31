@@ -46,6 +46,7 @@ end GameState
 
 enum PanelType:
   case P_INVISIBLE
+  case P_HINT
   case P_ERROR
   case P_RESULTS
 end PanelType
