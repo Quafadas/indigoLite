@@ -143,7 +143,7 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
                 scribe.error("@@@-19 LocalPeer.on error " + js.JSON.stringify(e))
                 val eMsg = js.JSON.stringify(e)
                   + " HINT: Wait for \"" + context.reference.oppoName + "\" to start" // signalling ERROR
-                peerJsPanel = (PanelType.P_ERROR, ("Error", eMsg))
+                peerJsPanel = (PanelType.P_HINT, ("HINT", eMsg))
                 timerT1 = TickTimer.start(TT_TEN_SECONDS)
             )
             eventQueue.enqueue(WebRtcEvent.CreatedPeerEntity(localPeer))

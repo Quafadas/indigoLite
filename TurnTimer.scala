@@ -3,53 +3,46 @@ package game
 import indigo.*
 
 final case class TurnTimer(
-    val iTotalTurnTime: Int, // .......... the turn time in seconds as configured by Params
-    val iCaptorsTurnTime: Int, // ........ the captors turn time in seconds as configured by Params
-    val iThisTurnTime: Int = 0, // ....... the current time in 10ths of a second
-    val iThisTurnExpires: Int = 0 // ..... the future time in 10ths of a second when turn expires
+    val iTotalTurnTime: Int, // .............. the turn time in seconds as configured by Params
+    val iCaptorsTurnTime: Int, // ............ the captors turn time in seconds as configured by Params
+    val bActive: Boolean = false, // ......... indicates whether the time is active
+    val bCaptorsTurn: Boolean = false, // .... indicates false for turn time and true for captors tome
+    val iCurrentTime: Int = 0, // ............ the current time in 10ths of a second
+    val iThisTurnExpires: Int = 0 // ......... the future time in 10ths of a second when turn expires
 )
 
 object TurnTimer:
   def restartForTurn(tt: TurnTimer): TurnTimer =
+    val a1 = (tt.iTotalTurnTime > 0)
     val t2 = math.round(System.currentTimeMillis / 100).toInt // this is 10ths of a second
     val t3 = t2 + (10 * tt.iTotalTurnTime)
-    tt.copy(iThisTurnTime = t2, iThisTurnExpires = t3)
+    tt.copy(iCurrentTime = t2, iThisTurnExpires = t3, bCaptorsTurn = false, bActive = a1)
   end restartForTurn
 
   def restartForCaptors(tt: TurnTimer): TurnTimer =
+    val a1 = (tt.iCaptorsTurnTime > 0)
     val t2 = math.round(System.currentTimeMillis / 100).toInt // this is 10ths of a second
     val t3 = t2 + (10 * tt.iCaptorsTurnTime)
-    tt.copy(iThisTurnTime = t2, iThisTurnExpires = t3)
+    tt.copy(iCurrentTime = t2, iThisTurnExpires = t3, bCaptorsTurn = true, bActive = a1)
   end restartForCaptors
 
   def update(tt: TurnTimer): Option[TurnTimer] =
-    val t2 = math.round(System.currentTimeMillis / 100).toInt // this is 10ths of a second
-    if t2 > tt.iThisTurnTime then Some(tt.copy(iThisTurnTime = t2))
-    else None
+    if tt.bActive then
+      val newTime = math.round(System.currentTimeMillis / 100).toInt // this is 10ths of a second
+      if newTime > tt.iCurrentTime then Some(tt.copy(iCurrentTime = newTime))
+      else None // there is no update needed
+      end if
+    else
+      None // there is no update needed
     end if
   end update
 
-  def isActive(tt: TurnTimer): Boolean =
-    if (tt.iThisTurnTime == 0) && (tt.iThisTurnExpires == 0) then
-      // not active
-      false
-    else
-      // true
-      true
-    end if
-  end isActive
-
-  // FIXME ... somewhere here we need to implement turn timer disabled by html setting = 0 !!!
-
   def expired(tt: TurnTimer): Boolean =
-    if (tt.iThisTurnTime == 0) || (tt.iThisTurnExpires == 0) then
-      // not expired and not active
-      false
-    else if tt.iThisTurnTime >= tt.iThisTurnExpires then
+    if tt.bActive && tt.iCurrentTime >= tt.iThisTurnExpires then
       // expired
       true
     else
-      // active but not expired
+      // either inactive or not expired
       false
     end if
   end expired
@@ -71,12 +64,32 @@ object TurnTimer:
     // White Rectangle Height = Cap Top -1
 
     val tt = model.turnTimer
-    val iTotalTime = tt.iTotalTurnTime * 10 // total turn time allowed in 10ths of seconds
-    val iTurnTime = tt.iThisTurnTime
+    val bActive = tt.bActive
+    val bCaptorsTurn = tt.bCaptorsTurn
+    val iCaptorsTime = 
+      if bActive then tt.iCaptorsTurnTime * 10 // captors turn time in 10ths of seconds
+      else 50 // we want to show 50% of the timer bar if inactive timer and captors turn
+      end if 
+    val iTotalTime = 
+      if bActive then tt.iTotalTurnTime * 10 // total turn time allowed in 10ths of seconds
+      else 100 // we want 100% ot the timer bar if inactive and pieces turn
+      end if
+
+    // It is possible for the captors time to be greater than the turn time so introduced the maximum
+    val iMaxTime = math.max(iTotalTime, iCaptorsTime)
+    val iCurrentTime = tt.iCurrentTime
     val iTurnExpires = tt.iThisTurnExpires
 
-    val iTimeRemaining = math.max(0, iTurnExpires - iTurnTime)
-    val iTimeSpent = iTotalTime - iTimeRemaining
+    val iTimeRemaining = 
+      if bActive then
+        math.max(0, iTurnExpires - iCurrentTime)
+      else if bCaptorsTurn then 
+        50 // we want to show 50% of the timer bar if inactive timer and captors turn
+      else
+        100 // we want 100% ot the timer bar if inactive and pieces turn
+      end if
+
+    val iTimeSpent = iMaxTime - iTimeRemaining
 
     val dSF = hexBoard4.scalingFactor
     val scalableX = hexBoard4.boardSize match
@@ -94,7 +107,7 @@ object TurnTimer:
     // we need to adjust the body length to compensate for any cropping incurred by size reduction
     val iBodyLength = 1170 - bodyCropMark
 
-    val T: Double = ((iBodyLength * iTimeSpent) / iTotalTime) + 70
+    val T: Double = ((iBodyLength * iTimeSpent) / iMaxTime) + 70
 
     val iSliderXPos = (math.round(scalableX * dSF)).toInt + hexBoard4.pBase.x
     val iBodyTop = (math.round(95 * dSF)).toInt

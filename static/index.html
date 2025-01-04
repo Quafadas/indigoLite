@@ -99,10 +99,11 @@
       <div>
         <table class ="borderless">        
           <td class ="borderless">
-            <span title="This is the number of seconds allowed for each turn. The negotiated version of this parameter is the average between your entry and your opponent&apos;s entry. A value of zero disables this timer">
+            <span title="This is the number of seconds allowed for each turn. The negotiated version of this parameter is the average between your entry and your opponent&apos;s entry. A resulting value of zero disables this timer">
               <div id="errorMsg4B" class="configErrorMsg"><b>Invalid Turn Time</b><br>
-                The turn time must be set as as a non-zero positive integer, <br>
+                The turn time must be greater than or equal to zero, <br>
                 representing the maximum time allowed in seconds for each turn.<br>
+                A value of zero disables this timer<br>
               </div>
               <label for="turnTime" class="configLabel">Turn Time:</label>
               <input id="turnTime" class="configNumberValue" type="number" name="turnTime">  
@@ -119,10 +120,11 @@
       <div>
         <table class ="borderless">        
           <td class ="borderless">
-            <span title= "This is the number of seconds allowed for an extended turn after a successful capture. It is suggested to make this half the turn timer above. The negotiated version of this parameter is the average between your entry and your opponent&apos;s entry. A value of zero disables this timer.">
+            <span title= "This is the number of seconds allowed for an extended turn after a successful capture. The negotiated version of this parameter is the average between your entry and your opponent&apos;s entry. A resulting value of zero disables this timer.">
               <div id="errorMsg4C" class="configErrorMsg"><b>Invalid Captor&apos;s Turn Time</b><br>
-                The captor&apos;s turn time must be set as as a non-zero positive integer, <br>
-                representing the maximum time allowed in seconds for extra turns.<br>
+                This captor&apos;s timer must be greater than or equal to zero.<br>
+                It represents the time allowed in seconds for extra turns.<br>
+                A value of zero disables this timer.<br>
               </div>
               <label for="captorsTime" class="configLabel">Captor&apos;s Time:</label>
               <input id="captorsTime" class="configNumberValue" type="number" name="captorsTime">
