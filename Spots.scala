@@ -30,6 +30,9 @@ final case class Spots(
     if bBlocks || bCylinders then
       if Piece.moved(piece) then
         scribe.debug("@@@ calculateSpots piece moved")
+        // we know the piece has moved and want to provide the opportunity for it to return back to it's
+        // turn starting position (PosA). However, after this piece moved another piece may also have moved and 
+        // occupied PosA. The next match checks for this ...
         model.pieces.modelPieces.find(p => (p.pCurPos == piece.pTurnStartPos)) match
           case Some(p) =>
             Spots(Set.empty)
@@ -58,8 +61,6 @@ final case class Spots(
     val s = qrs._3
 
     if piece.pCurPos == piece.pHomePos then
-
-      scribe.debug("@@@ Spotify TP1")
 
       // we have a piece in the home position so display unoccupied starting places
       // these places vary according to board size
@@ -101,18 +102,18 @@ final case class Spots(
       end match
 
       val ss2 = ss1.filter { case (aX, aY) => hexBoard4.isThisHexFree(Point(aX, aY), vPieces) }
-      scribe.debug("@@@ spotify Home free hex count: " + ss2.size)
-      Spots(ss2)
+      val ss3 = ss2 + ((piece.pHomePos.x, piece.pHomePos.y))
+      Spots(ss3)
     else if piece.bMoved then
-      scribe.debug("@@@ Spotify TP2")
       // we have a piece that has already moved this turn
       val ss1 = Set((piece.pTurnStartPos.x, piece.pTurnStartPos.y))
       Spots(ss1)
     else
-      scribe.debug("@@@ Spotify TP3")
 
-      // we have a piece on the board trying to move so calculate valid moves from Ring1,Ring2,Ring3
+      // we have a piece on the board trying to move so calculate valid moves from StartPos, Ring1,Ring2,Ring3
       // Inner Ring
+
+      val setStartPos = Set((piece.pTurnStartPos.x, piece.pTurnStartPos.y))
 
       val setInnerRing = spotRingQRS(q, r, s)
       var setInnerRingAxAy = Set.empty[(Int, Int)]
@@ -169,7 +170,7 @@ final case class Spots(
             setOuterRingQRS = setOuterRingQRS + q3r3s3
         }
       }
-      Spots(setInnerRingAxAy.union(setMiddleRingAxAy).union(setOuterRingAxAy))
+      Spots(setStartPos.union(setInnerRingAxAy).union(setMiddleRingAxAy).union(setOuterRingAxAy))
     end if
 
   end spotify

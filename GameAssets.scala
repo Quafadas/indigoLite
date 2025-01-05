@@ -195,9 +195,9 @@ object GameAssets:
   def cornerLayers(r: Rectangle, sf: Double, cornerColor: RGBA): Batch[Graphic[ImageEffects]] =
     val newWidth20 = ((r.width - 20).toDouble * sf).toInt
     val newHeight20 = ((r.height - 20).toDouble * sf).toInt
-    // val layerC1 = (GameAssets.cornerTopLeft)
-    //  .moveTo(r.left, r.top)
-    //  .modifyMaterial(_.withTint(cornerColor))
+    val layerC1 = (GameAssets.cornerTopLeft)
+      .moveTo(0, r.top)
+      .modifyMaterial(_.withTint(cornerColor))
     val layerC2 = (GameAssets.cornerTopRight)
       .moveTo(newWidth20, r.top)
       .modifyMaterial(_.withTint(cornerColor))
@@ -208,7 +208,7 @@ object GameAssets:
       .moveTo(newWidth20, newHeight20)
       .modifyMaterial(_.withTint(cornerColor))
 
-    Batch(layerC2, layerC3, layerC4)
+    Batch(layerC1, layerC2, layerC3, layerC4)
   end cornerLayers
 
   def scaleButtonBounds(r: Rectangle, sf: Double): Rectangle =

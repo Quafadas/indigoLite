@@ -486,12 +486,11 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
   ): Outcome[SceneUpdateFragment] =
 
     val dSF = hexBoard4.scalingFactor
-    val sFactor = ((10 * dSF).toInt).toString()
 
-    val textDiag = TextBox(sFactor + " " + dMsg, 200, 40) // FIXME 200,40 just some convenient numbers for text box size
-      .withColor(RGBA.Black)
-      .withFontSize(Pixels(20))
-      .moveTo(0, 0)
+//    val textDiag = TextBox(sFactor + " " + dMsg, 200, 40) // FIXME 200,40 just some convenient numbers for text box size
+//      .withColor(RGBA.Black)
+//      .withFontSize(Pixels(20))
+//      .moveTo(0, 0)
 
     val cylinderName =
       if model.ourPieceType == CYLINDER then model.ourName
@@ -560,6 +559,11 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
     val y7 = (840 * dSF).toInt
     val y8 = (925 * dSF).toInt
     val y9 = (590 * dSF).toInt
+    val x10 = (70 * dSF).toInt
+    val y10 = (1033 *dSF).toInt
+    val x11 = (70 * dSF).toInt
+    val y11 = (1066 *dSF).toInt
+
 
     val paramsPanel = GameAssets.gParamsPanel(dSF).moveTo(0, y9)
 
@@ -587,6 +591,21 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
         .withFontSize(Pixels(60))
         .scaleBy(dSF, dSF)
         .moveTo(x5, y8)
+
+    val zoomLabel = 
+      TextBox("Zoom", 100, 70).alignCenter
+        .withColor(RGBA.Black)
+        .withFontSize(Pixels(30))
+        .scaleBy(dSF, dSF)
+        .moveTo(x10, y10)
+    val sFactor = ((100 * dSF).toInt).toString()
+    val zoomPercentage = 
+      TextBox(sFactor+"%", 100, 70).alignCenter
+        .withColor(RGBA.Black)
+        .withFontSize(Pixels(30))
+        .scaleBy(dSF, dSF)
+        .moveTo(x11, y11)
+
 
     val pB = hexBoard4.pBase // ................... for HighLighter
 
@@ -616,12 +635,9 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
 
     Outcome(
       SceneUpdateFragment(LayerKeys.Background -> Layer.empty)
-        //|+| SceneUpdateFragment(LayerKeys.Background -> Layer.Content(Shape.Box(Rectangle(0, 0, width, height), Fill.Color(RGBA.Zero))))
         |+| SceneUpdateFragment(LayerKeys.Background -> Layer.Content(Shape.Box(rLeft, Fill.Color(RGBA.White))))
         |+| SceneUpdateFragment(LayerKeys.Background -> Layer.Content(Shape.Box(rRight, Fill.Color(RGBA.White))))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(GameAssets.cornerLayers(rCorners, 1.0, RGBA.Magenta))        )
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(Shape.Box(Rectangle(0, 0, 24, 24), Fill.Color(RGBA.Magenta))))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(textDiag))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.turnButton.draw))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(youAre))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(scorePanel))
@@ -632,6 +648,8 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(paramsPanel))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(Batch(param1, param2, param3, param4)))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.plusButton.draw))
+        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(zoomLabel))
+        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(zoomPercentage))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.minusButton.draw))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.newGameButton.draw))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> TurnTimer.show(model))
@@ -713,9 +731,9 @@ end GameSceneViewModel
 
 object GameSceneViewModel:
   val turnBounds = Rectangle(10, 30, 90, 80)
-  val plusBounds = Rectangle(10, 1020, 90, 80)
-  val minusBounds = Rectangle(160, 1020, 90, 80)
-  val newGameBounds = Rectangle(10, 1120, 240, 80)
+  val plusBounds = Rectangle(5, 1025, 90, 80)
+  val minusBounds = Rectangle(170, 1025, 90, 80)
+  val newGameBounds = Rectangle(5, 1125, 240, 80)
 
   val initial: GameSceneViewModel =
     GameSceneViewModel(
