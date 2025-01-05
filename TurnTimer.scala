@@ -32,8 +32,7 @@ object TurnTimer:
       if newTime > tt.iCurrentTime then Some(tt.copy(iCurrentTime = newTime))
       else None // there is no update needed
       end if
-    else
-      None // there is no update needed
+    else None // there is no update needed
     end if
   end update
 
@@ -66,28 +65,28 @@ object TurnTimer:
     val tt = model.turnTimer
     val bActive = tt.bActive
     val bCaptorsTurn = tt.bCaptorsTurn
-    val iCaptorsTime = 
+    val iCaptorsTime =
       if bActive then tt.iCaptorsTurnTime * 10 // captors turn time in 10ths of seconds
       else 50 // we want to show 50% of the timer bar if inactive timer and captors turn
-      end if 
-    val iTotalTime = 
+      end if
+    end iCaptorsTime
+    val iTotalTime =
       if bActive then tt.iTotalTurnTime * 10 // total turn time allowed in 10ths of seconds
       else 100 // we want 100% ot the timer bar if inactive and pieces turn
       end if
+    end iTotalTime
 
     // It is possible for the captors time to be greater than the turn time so introduced the maximum
     val iMaxTime = math.max(iTotalTime, iCaptorsTime)
     val iCurrentTime = tt.iCurrentTime
     val iTurnExpires = tt.iThisTurnExpires
 
-    val iTimeRemaining = 
-      if bActive then
-        math.max(0, iTurnExpires - iCurrentTime)
-      else if bCaptorsTurn then 
-        50 // we want to show 50% of the timer bar if inactive timer and captors turn
-      else
-        100 // we want 100% ot the timer bar if inactive and pieces turn
+    val iTimeRemaining =
+      if bActive then math.max(0, iTurnExpires - iCurrentTime)
+      else if bCaptorsTurn then 50 // we want to show 50% of the timer bar if inactive timer and captors turn
+      else 100 // we want 100% ot the timer bar if inactive and pieces turn
       end if
+    end iTimeRemaining
 
     val iTimeSpent = iMaxTime - iTimeRemaining
 

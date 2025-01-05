@@ -560,10 +560,9 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
     val y8 = (925 * dSF).toInt
     val y9 = (590 * dSF).toInt
     val x10 = (70 * dSF).toInt
-    val y10 = (1033 *dSF).toInt
+    val y10 = (1033 * dSF).toInt
     val x11 = (70 * dSF).toInt
-    val y11 = (1066 *dSF).toInt
-
+    val y11 = (1066 * dSF).toInt
 
     val paramsPanel = GameAssets.gParamsPanel(dSF).moveTo(0, y9)
 
@@ -592,20 +591,19 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
         .scaleBy(dSF, dSF)
         .moveTo(x5, y8)
 
-    val zoomLabel = 
+    val zoomLabel =
       TextBox("Zoom", 100, 70).alignCenter
         .withColor(RGBA.Black)
         .withFontSize(Pixels(30))
         .scaleBy(dSF, dSF)
         .moveTo(x10, y10)
     val sFactor = ((100 * dSF).toInt).toString()
-    val zoomPercentage = 
-      TextBox(sFactor+"%", 100, 70).alignCenter
+    val zoomPercentage =
+      TextBox(sFactor + "%", 100, 70).alignCenter
         .withColor(RGBA.Black)
         .withFontSize(Pixels(30))
         .scaleBy(dSF, dSF)
         .moveTo(x11, y11)
-
 
     val pB = hexBoard4.pBase // ................... for HighLighter
 

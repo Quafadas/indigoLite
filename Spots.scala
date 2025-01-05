@@ -31,7 +31,7 @@ final case class Spots(
       if Piece.moved(piece) then
         scribe.debug("@@@ calculateSpots piece moved")
         // we know the piece has moved and want to provide the opportunity for it to return back to it's
-        // turn starting position (PosA). However, after this piece moved another piece may also have moved and 
+        // turn starting position (PosA). However, after this piece moved another piece may also have moved and
         // occupied PosA. The next match checks for this ...
         model.pieces.modelPieces.find(p => (p.pCurPos == piece.pTurnStartPos)) match
           case Some(p) =>
