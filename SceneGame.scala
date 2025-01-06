@@ -487,109 +487,10 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
 
     val dSF = hexBoard4.scalingFactor
 
-//    val textDiag = TextBox(sFactor + " " + dMsg, 200, 40) // FIXME 200,40 just some convenient numbers for text box size
-//      .withColor(RGBA.Black)
-//      .withFontSize(Pixels(20))
-//      .moveTo(0, 0)
-
-    val cylinderName =
-      if model.ourPieceType == CYLINDER then model.ourName
-      else model.oppoName
-      end if
-    end cylinderName
-    val blockName =
-      if model.ourPieceType == CYLINDER then model.oppoName
-      else model.ourName
-      end if
-    end blockName
-
-    val y0 = (130 * dSF).toInt
-    val scorePanel =
-      if (bBlinkOn == true) && (model.gameState == GameState.CYLINDER_TURN) then
-        // select purple cylinder icon
-        GameAssets.gScorePanelBlinkCylinder(dSF).moveTo(0, y0)
-      else if (bBlinkOn == true) && (model.gameState == GameState.BLOCK_TURN) then
-        // select purple block icon
-        GameAssets.gScorePanelBlinkBlock(dSF).moveTo(0, y0)
-      else
-        // normal panel
-        GameAssets.gScorePanelBlinkOff(dSF).moveTo(0, y0)
-      end if
-    end scorePanel
-
-    val x1 = (14 * dSF).toInt
-    val y1 = (190 * dSF).toInt
-    val cylinderPlayer =
-      TextBox((cylinderName).toString(), 220, 50)
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(40))
-        .scaleBy(dSF, dSF)
-        .moveTo(x1, y1)
-
-    val x2 = (14 * dSF).toInt
-    val y2 = (370 * dSF).toInt
-    val blockPlayer =
-      TextBox((blockName).toString(), 220, 50)
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(40))
-        .scaleBy(dSF, dSF)
-        .moveTo(x2, y2)
-
-    val cylinderScoreX = (coordXFromScore(model.gameScore._1) * dSF).toInt
-    val blockScoreX = (coordXFromScore(model.gameScore._2) * dSF).toInt
-    val y3 = (250 * dSF).toInt
-    val y4 = (430 * dSF).toInt
-
-    val cylinderScore =
-      TextBox((model.gameScore._1).toString(), 150, 300)
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(100))
-        .scaleBy(dSF, dSF)
-        .moveTo(cylinderScoreX, y3)
-    val blockScore =
-      TextBox((model.gameScore._2).toString(), 150, 300)
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(100))
-        .scaleBy(dSF, dSF)
-        .moveTo(blockScoreX, y4)
-
-    val x5 = (140 * dSF).toInt
-    val y5 = (670 * dSF).toInt
-    val y6 = (755 * dSF).toInt
-    val y7 = (840 * dSF).toInt
-    val y8 = (925 * dSF).toInt
-    val y9 = (590 * dSF).toInt
     val x10 = (70 * dSF).toInt
     val y10 = (1033 * dSF).toInt
     val x11 = (70 * dSF).toInt
     val y11 = (1066 * dSF).toInt
-
-    val paramsPanel = GameAssets.gParamsPanel(dSF).moveTo(0, y9)
-
-    val param1 =
-      TextBox((model.winningScore).toString(), 100, 70).bold
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(60))
-        .scaleBy(dSF, dSF)
-        .moveTo(x5, y5)
-    val param2 =
-      TextBox((model.turnTimer.iTotalTurnTime).toString(), 100, 70).bold
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(60))
-        .scaleBy(dSF, dSF)
-        .moveTo(x5, y6)
-    val param3 =
-      TextBox((model.turnTimer.iCaptorsTurnTime).toString(), 100, 70).bold
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(60))
-        .scaleBy(dSF, dSF)
-        .moveTo(x5, y7)
-    val param4 =
-      TextBox((model.randEventFreq).toString(), 100, 70).bold
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(60))
-        .scaleBy(dSF, dSF)
-        .moveTo(x5, y8)
 
     val zoomLabel =
       TextBox("Zoom", 100, 70).alignCenter
@@ -638,13 +539,8 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(GameAssets.cornerLayers(rCorners, 1.0, RGBA.Magenta))        )
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.turnButton.draw))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(youAre))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(scorePanel))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(cylinderPlayer))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(blockPlayer))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(cylinderScore))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(blockScore))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(paramsPanel))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(Batch(param1, param2, param3, param4)))
+        |+| SceneUpdateFragment(LayerKeys.Middleground -> scorePanel.show(model, bBlinkOn, dSF))
+        |+| SceneUpdateFragment(LayerKeys.Middleground -> paramsPanel.show(model, dSF))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.plusButton.draw))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(zoomLabel))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(zoomPercentage))
