@@ -32,10 +32,10 @@ final case class ScorePanel():
     end blockName
 
     val hybridScorePanel =
-      if (bBlinkOn == true) && (model.gameState == GameState.CYLINDER_TURN) then
+      if (bBlinkOn == true) && (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == CYLINDER) then
         // select purple cylinder icon
         GameAssets.gScorePanelBlinkCylinder(dSF).moveTo(p0Scaled)
-      else if (bBlinkOn == true) && (model.gameState == GameState.BLOCK_TURN) then
+      else if (bBlinkOn == true) && (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == BLOCK)  then
         // select purple block icon
         GameAssets.gScorePanelBlinkBlock(dSF).moveTo(p0Scaled)
       else
@@ -46,6 +46,7 @@ final case class ScorePanel():
 
     val cylinderPlayer =
       TextBox((cylinderName).toString(), 220, 50)
+        .alignCenter
         .withColor(RGBA.Black)
         .withFontSize(Pixels(40))
         .scaleBy(dSF, dSF)
@@ -53,6 +54,7 @@ final case class ScorePanel():
 
     val blockPlayer =
       TextBox((blockName).toString(), 220, 50)
+        .alignCenter
         .withColor(RGBA.Black)
         .withFontSize(Pixels(40))
         .scaleBy(dSF, dSF)
