@@ -228,6 +228,8 @@ object ButtonTurnEvent:
   case class Occurence() extends GlobalEvent
 end ButtonTurnEvent
 
+case object StartLiveGame extends GlobalEvent
+
 object Freeze:
   case class PanelContent(panelType: PanelType, content: (String, String)) extends GlobalEvent
 end Freeze

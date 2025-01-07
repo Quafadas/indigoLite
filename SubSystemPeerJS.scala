@@ -86,7 +86,7 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
   def reference(flicFlacGameModel: FlicFlacGameModel): FlicFlacGameModel = flicFlacGameModel
 
   def initialModel: Outcome[Unit] =
-    scribe.debug("@@@ SubSystemPeerJS initialModel")
+    scribe.trace("@@@ SubSystemPeerJS initialModel")
     Outcome(())
   end initialModel
 
@@ -98,13 +98,13 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
       try
         e match
           case WebRtcEvent.MakePeerEntity =>
-            scribe.debug("@@@-10 SubSystemPeerJS WebRtcEvent.MakePeerEntity using " + context.reference.ourName)
+            scribe.trace("@@@-10 SubSystemPeerJS WebRtcEvent.MakePeerEntity using " + context.reference.ourName)
             val localPeer = Peer(id = context.reference.ourName)
 
             localPeer.on(
               "open",
               (_: Any) =>
-                scribe.debug("@@@-11 localPeer.on open")
+                scribe.trace("@@@-11 localPeer.on open")
                 if context.reference.ourName.compare(context.reference.oppoName) < 0 then
                   // we are the connection initiator so attempt to make the request
                   eventQueue.enqueue(WebRtcEvent.Connect(context.reference.oppoName))
@@ -120,7 +120,7 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
               "connection",
               (c: DataConnection) =>
                 remotePeerName = c.label // RESPONDER setting up remotePeerName
-                scribe.debug("@@@-12 localPeer.connection to " + remotePeerName)
+                scribe.trace("@@@-12 localPeer.connection to " + remotePeerName)
 
                 // optionally, we can reject connection if c.label != context.reference.oppoName ...
                 // ... this is the scenario where an unknown peer has connected to us
@@ -129,12 +129,12 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
             )
             localPeer.on(
               "disconnected",
-              (_: Any) => scribe.debug("@@@-13 localPeer.on disconnected")
+              (_: Any) => scribe.trace("@@@-13 localPeer.on disconnected")
             )
 
             localPeer.on(
               "close",
-              (_: Any) => scribe.debug("@@@-14 localPeer.on close")
+              (_: Any) => scribe.trace("@@@-14 localPeer.on close")
             )
 
             localPeer.on(
@@ -150,14 +150,14 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
             Outcome(())
 
           case WebRtcEvent.CreatedPeerEntity(p) =>
-            scribe.debug("@@@-20 SubSystemPeerJS WebRtcEvent.CreatedPeerEntity")
+            scribe.trace("@@@-20 SubSystemPeerJS WebRtcEvent.CreatedPeerEntity")
             peer = Some(p)
             Outcome(())
 
           case WebRtcEvent.Connect(s) =>
             val ourname = peer.get.id
             remotePeerName = s // INITIATOR setting up remotePeerName
-            scribe.debug("@@@-30 SubSystemPeerJS WebRtcEvent.Connect: " + ourname + " ->  " + remotePeerName)
+            scribe.trace("@@@-30 SubSystemPeerJS WebRtcEvent.Connect: " + ourname + " ->  " + remotePeerName)
 
             val connection = peer match
               case Some(p) =>
@@ -167,12 +167,12 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
                 conn.on(
                   "open",
                   (_: Any) =>
-                    scribe.debug("@@@-31 Connect.on open")
+                    scribe.trace("@@@-31 Connect.on open")
                     eventQueue.enqueue(WebRtcEvent.ConnectionOpen)
                 )
                 conn.on(
                   "close",
-                  (c: DataConnection) => scribe.debug("@@@-32 Connect.on close")
+                  (c: DataConnection) => scribe.trace("@@@-32 Connect.on close")
                 )
                 conn.on(
                   "error",
@@ -194,11 +194,11 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
             Outcome(())
 
           case WebRtcEvent.IncomingPeerConnection(c) =>
-            scribe.debug("@@@-40 SubSystemPeerJS WebRtcEvent.IncomingPeerConnection")
+            scribe.trace("@@@-40 SubSystemPeerJS WebRtcEvent.IncomingPeerConnection")
             c.on(
               "data",
               (data: js.Object) =>
-                scribe.debug("@@@-41 ConnectionOpen.on data")
+                scribe.trace("@@@-41 ConnectionOpen.on data")
                 val str = js.JSON.stringify(data)
                 val ffgm = decodeRxJsonObject(data, 48) // 48 is the error number
                 val ffgm1 = convertRxGameModel(ffgm)
@@ -206,7 +206,7 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
             )
             c.on(
               "close",
-              (c: DataConnection) => scribe.debug("@@@-42 IncomingPeerConnection.on closed ")
+              (c: DataConnection) => scribe.trace("@@@-42 IncomingPeerConnection.on closed ")
             )
             c.on(
               "error",
@@ -220,21 +220,21 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
 
           case WebRtcEvent.PeerCreatedConnection(connLocal: DataConnection) =>
             // successful connection as as RESPONDER so bump Game State
-            scribe.debug("@@@-50 SubSystemPeerJS WebRtcEvent.PeerCreatedConnection")
+            scribe.trace("@@@-50 SubSystemPeerJS WebRtcEvent.PeerCreatedConnection")
             conn = Some(connLocal)
             setGameState(GameState.START_CON3, context.reference, RESPONDER)
             Outcome(())
 
           case WebRtcEvent.ConnectionOpen =>
             // successful connection as INITIATOR so stop timerT1 and bump Game State
-            scribe.debug("@@@-60 SubSystemPeerJS WebRtcEvent.ConnectionOpen")
+            scribe.trace("@@@-60 SubSystemPeerJS WebRtcEvent.ConnectionOpen")
             timerT1 = TickTimer.stop()
             setGameState(GameState.START_CON3, context.reference, INITIATOR)
             conn.foreach { c =>
               c.on(
                 "data",
                 (data: js.Object) =>
-                  scribe.debug("@@@-61 ConnectionOpen.on data ")
+                  scribe.trace("@@@-61 ConnectionOpen.on data ")
                   val ffgm = decodeRxJsonObject(data, 68) // 68 is the error number
                   val ffgm1 = convertRxGameModel(ffgm)
                   latestUpdate = Some(FlicFlacGameUpdate.Info(ffgm1))
@@ -242,7 +242,7 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
 
               c.on(
                 "close",
-                (c: DataConnection) => scribe.debug("@@@-62 ConnectionOpen.on close ")
+                (c: DataConnection) => scribe.trace("@@@-62 ConnectionOpen.on close ")
               )
               c.on(
                 "error",
@@ -255,28 +255,28 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
             Outcome(())
 
           case WebRtcEvent.SendData(ffgm) =>
-            scribe.debug("@@@-70 SubSystemPeerJS WebRtcEvent.SendData")
+            scribe.trace("@@@-70 SubSystemPeerJS WebRtcEvent.SendData")
 
             if TickTimer.isInactive(timerT1) then
               conn.foreach { c =>
-                scribe.debug("@@@-71 SendData " + peer.get.id + "->" + remotePeerName)
+                scribe.trace("@@@-71 SendData " + peer.get.id + "->" + remotePeerName)
                 val toSendNoSpaces = ffgm.asJson.noSpaces
                 val toSendJson = js.JSON.parse(toSendNoSpaces)
                 c.send(toSendJson)
               }
             else
               // send nothing as connection not ready
-              scribe.debug("@@@-72 SendData blocked as connection not open yet")
+              scribe.trace("@@@-72 SendData blocked as connection not open yet")
             end if
             Outcome(())
 
           case WebRtcEvent.ReceivedData(data: js.Object) =>
-            scribe.debug("@@@-80 SubSystemPeerJS WebRtcEvent.ReceiveData")
+            scribe.trace("@@@-80 SubSystemPeerJS WebRtcEvent.ReceiveData")
 // ********************************************************************************************************
 // It appears that sections 41 and 61 do the same job as this one, which ends up as a duplication of effort
 //
 //            conn.foreach { c =>
-//              scribe.debug("@@@-81 ReceiveData " + remotePeerName + "->" + peer.get.id)
+//              scribe.trace("@@@-81 ReceiveData " + remotePeerName + "->" + peer.get.id)
 //              val ffgm = decodeRxJsonObject(data, 88) // 88 is the error number
 //              val ffgm1 = convertRxGameModel(ffgm)
 //              latestUpdate = Some(FlicFlacGameUpdate.Info(ffgm1))
@@ -285,13 +285,13 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
             Outcome(())
 
           case WebRtcEvent.Close =>
-            scribe.debug("@@@-90 SubSystemPeerJS WebRtcEvent.Close")
+            scribe.trace("@@@-90 SubSystemPeerJS WebRtcEvent.Close")
             conn.foreach(_.close())
             Outcome(())
 
           case Freeze.PanelContent(typeOfPanel, titleAndMessageToDisplay) =>
             peerJsPanel = (typeOfPanel, titleAndMessageToDisplay)
-            scribe.debug("@@@ SubSystemPeerJS Freeze.PanelContent: " + typeOfPanel.toString())
+            scribe.trace("@@@ SubSystemPeerJS Freeze.PanelContent: " + typeOfPanel.toString())
             Outcome(())
 
           case _ =>
@@ -423,7 +423,7 @@ final case class SSPeerJS(initialMessage: String) extends SubSystem[FlicFlacGame
     val ffgm = decode[FlicFlacGameModel](str)
       .fold(
         e =>
-          scribe.error("@@@-" + errNo + " Error decoding data")
+          scribe.error("@@@ " + errNo + " Error decoding data")
           throw new Exception("Error " + errNo + "decoding data")
         ,
         identity

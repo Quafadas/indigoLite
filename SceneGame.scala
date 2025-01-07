@@ -38,6 +38,13 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
     e =>
       try
         e match
+
+          case StartLiveGame => 
+            scribe.debug("@@@ StartLiveGame with BoardSize:" + model.boardSize)
+            hexBoard4.create(model.boardSize) // ................................ establish new hexboard
+            val startingPieces = FlicFlacGameModel.summonPieces(hexBoard4) // ... establish new starting positions
+            FlicFlacGameModel.modifyPieces(model, startingPieces) // ............ update model
+
           case e: FlicFlacGameUpdate.Info =>
             scribe.debug("@@@ FlicFlacGameUpdate.Info")
             FlicFlacGameModel.modify(e.ffgm, None, None)

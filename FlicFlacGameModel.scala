@@ -241,7 +241,7 @@ object FlicFlacGameModel:
         "FlicFlac-Game2"
       end if
     end sName
-    scribe.debug("@@@ getGameName: " + sName)
+    // scribe.debug("@@@ getGameName: " + sName)
     sName
   end getGameName
 
