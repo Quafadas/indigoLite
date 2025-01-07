@@ -300,10 +300,10 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
         )
         lastTxGameModel = Some(newModel)
         timerP1 = TickTimer.stop()
-        FlicFlacGameModel.modify(newModel, None, None)
+        FlicFlacGameModel
+          .modify(newModel, None, None)
           .addGlobalEvents(SceneEvent.Next)
           .addGlobalEvents(StartLiveGame)
-
 
       case _ =>
         val sError = "SceneParams INITIATOR error "
@@ -412,7 +412,8 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
           )
           lastTxGameModel = Some(newModel)
           timerP1 = TickTimer.stop()
-          FlicFlacGameModel.modify(newModel, None, None)
+          FlicFlacGameModel
+            .modify(newModel, None, None)
             .addGlobalEvents(SceneEvent.Next)
             .addGlobalEvents(StartLiveGame)
         else

@@ -57,4 +57,3 @@ final case class ParamsPanel():
   end show
 
 end ParamsPanel
-

@@ -3,15 +3,15 @@ package game
 import indigo.*
 
 final case class ScorePanel():
-  val p0 = Point(0, 130) // ....... coords of score panel on the game scene when 100% zoom 
-  val p1 = Point(14, 190) //....... coords of cylinder name
+  val p0 = Point(0, 130) // ....... coords of score panel on the game scene when 100% zoom
+  val p1 = Point(14, 190) // ...... coords of cylinder name
   val p2 = Point(14, 370) // ...... coords of block name
   val p3a = Point(150, 250) // .... coords of cylinder score if single digit
   val p3b = Point(120, 250) // .... coords of cylinder score if 10 or more
   val p4a = Point(150, 430) // .... coords of block score if single digit
   val p4b = Point(120, 430) // .... coords of block score if 10 or more
-  val p5 = Point(20,230) // ....... coords of cylinder icon
-  val p6 = Point(20,410) // ....... coords of block icon
+  val p5 = Point(20, 230) // ...... coords of cylinder icon
+  val p6 = Point(20, 410) // ...... coords of block icon
 
   def show(model: FlicFlacGameModel, bBlinkOn: Boolean, dSF: Double): Layer =
 
@@ -39,7 +39,7 @@ final case class ScorePanel():
       if (bBlinkOn == true) && (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == CYLINDER) then
         // select magenta cylinder icon
         GameAssets.gScorePanelHighlightCylinder(dSF).moveTo(p0Scaled)
-      else if (bBlinkOn == true) && (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == BLOCK)  then
+      else if (bBlinkOn == true) && (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == BLOCK) then
         // select magenta block icon
         GameAssets.gScorePanelHighlightBlock(dSF).moveTo(p0Scaled)
       else
@@ -48,7 +48,7 @@ final case class ScorePanel():
       end if
     end hybridScorePanel
 
-    val cylinderIcon = 
+    val cylinderIcon =
       if model.gameState == GameState.CYLINDER_TURN then
         if model.ourPieceType == CYLINDER then
           FlicFlacGameModel.findPieceSelected(model) match
@@ -68,7 +68,7 @@ final case class ScorePanel():
       end if
     end cylinderIcon
 
-    val blockIcon = 
+    val blockIcon =
       if model.gameState == GameState.BLOCK_TURN then
         if model.ourPieceType == BLOCK then
           FlicFlacGameModel.findPieceSelected(model) match
@@ -89,16 +89,14 @@ final case class ScorePanel():
     end blockIcon
 
     val cylinderPlayer =
-      TextBox((cylinderName).toString(), 220, 50)
-        .alignCenter
+      TextBox((cylinderName).toString(), 220, 50).alignCenter
         .withColor(RGBA.Black)
         .withFontSize(Pixels(40))
         .scaleBy(dSF, dSF)
         .moveTo(p1Scaled)
 
     val blockPlayer =
-      TextBox((blockName).toString(), 220, 50)
-        .alignCenter
+      TextBox((blockName).toString(), 220, 50).alignCenter
         .withColor(RGBA.Black)
         .withFontSize(Pixels(40))
         .scaleBy(dSF, dSF)
@@ -129,7 +127,7 @@ final case class ScorePanel():
     (content1 |+| content2 |+| content3 |+| content4 |+| content5 |+| content6 |+| content7)
   end show
 
-  def coordsFromScore(score: Int, coordsForOneDigit: Point, coordsForTwoDigits: Point ): Point =
+  def coordsFromScore(score: Int, coordsForOneDigit: Point, coordsForTwoDigits: Point): Point =
     if score < 10 then coordsForOneDigit
     else coordsForTwoDigits
     end if

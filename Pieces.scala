@@ -97,7 +97,7 @@ final case class Pieces(
       val bPotentialBlinker = (p.pieceShape, model.gameState, model.ourPieceType) match
         case (CYLINDER, GameState.CYLINDER_TURN, CYLINDER) => true
         case (BLOCK, GameState.BLOCK_TURN, BLOCK)          => true
-        case (_,  _, _)                                    => false
+        case (_, _, _)                                     => false
 
       val bShow =
         if bPotentialBlinker then

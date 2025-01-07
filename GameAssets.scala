@@ -68,36 +68,37 @@ object GameAssets:
   def gScorePanelHighlightBlock(sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(500, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf, sf)
 
-  def gScorePanelMagentaCylinder(sf:Double): Graphic[Material.ImageEffects] =
+  def gScorePanelMagentaCylinder(sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(784, 204, 122, 142), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf, sf)
 
-  def gScorePanelGreyCylinder(sf:Double): Graphic[Material.ImageEffects] =
+  def gScorePanelGreyCylinder(sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(914, 204, 122, 142), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf, sf)
 
-  def gScorePanelMagentaBlock(sf:Double): Graphic[Material.ImageEffects] =
+  def gScorePanelMagentaBlock(sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(784, 354, 122, 142), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf, sf)
 
-  def gScorePanelGreyBlock(sf:Double): Graphic[Material.ImageEffects] =
+  def gScorePanelGreyBlock(sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(914, 354, 122, 142), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf, sf)
 
-  def gScorePanelPieceAndFlip(pieceShape: Int, pieceIdentity: Int, pieceFlipped: Boolean, sf: Double): Graphic[Material.ImageEffects] =    
-    val xPos = 
-      // 4 is border size, 130 is horizontal distance between each panel        
-      if (pieceFlipped) then
+  def gScorePanelPieceAndFlip(pieceShape: Int, pieceIdentity: Int, pieceFlipped: Boolean, sf: Double): Graphic[Material.ImageEffects] =
+    val xPos =
+      // 4 is border size, 130 is horizontal distance between each panel
+      if pieceFlipped then
         // flipped so add 130
-        4 + (2 * pieceIdentity * 130) + 130  
+        4 + (2 * pieceIdentity * 130) + 130
       else
         // normal
         4 + (2 * pieceIdentity * 130)
       end if
     end xPos
 
-    val yPos = 504 + (150 * pieceShape ) // 4 is border size, panels location 500, vertical distance between cylinders and blocks is 150
+    val yPos = 504 + (150 * pieceShape) // 4 is border size, panels location 500, vertical distance between cylinders and blocks is 150
 
     val rCrop = Rectangle(xPos, yPos, 122, 142) // 122 x 142 is the size of the transparent piece panels
-    Graphic(Rectangle(0, 500 , 1600, 380), 3, Material.ImageEffects(AssetName(spAssetName)))
-    .withCrop(rCrop.x, rCrop.y, rCrop.width, rCrop.height)
-    .scaleBy(sf, sf)
+    Graphic(Rectangle(0, 500, 1600, 380), 3, Material.ImageEffects(AssetName(spAssetName)))
+      .withCrop(rCrop.x, rCrop.y, rCrop.width, rCrop.height)
+      .scaleBy(sf, sf)
+  end gScorePanelPieceAndFlip
 
   def gParamsPanel(sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(0, 0, 250, 425), 3, Material.ImageEffects(AssetName(pmAssetName))).scaleBy(sf, sf)
