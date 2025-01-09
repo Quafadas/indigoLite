@@ -58,8 +58,8 @@ object FlicFlacGameModel:
     scribe.debug("@@@ FlicFlacGameModel creation")
 
     val sOurName = playerParams.playPams1_Name1
-    val sOppoName = playerParams.playPams2_Name2    
-    val iOurShape = playerParams.playPams3_PieceShape  
+    val sOppoName = playerParams.playPams2_Name2
+    val iOurShape = playerParams.playPams3_PieceShape
     val boardSize = playerParams.playPams4_BoardSize
     val iWinningScore = playerParams.playPams5_ScoreToWin
     val iRandEventFreq = playerParams.playPams8_RandEventProb
