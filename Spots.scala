@@ -37,7 +37,7 @@ final case class Spots(
           case Some(p) =>
             Spots(Set.empty)
           case None =>
-            Spots(Set((piece.pTurnStartPos.x, piece.pTurnStartPos.y))) // starting position only
+            Spots(Set((piece.pTurnStartPos.x, piece.pTurnStartPos.y), (piece.pCurPos.x, piece.pCurPos.y))) // starting & current positions only
         end match
       else
         scribe.debug("@@@ calculateSpots piece not moved @ " + piece.pCurPos)

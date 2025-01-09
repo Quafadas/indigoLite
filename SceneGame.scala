@@ -538,13 +538,23 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
         .withFontSize(Pixels(40))
         .moveTo(iLeftWidth, 2)
 
+    val diag =
+      TextBox(dMsg, 200, 30)
+        .withColor(RGBA.Black)
+        .withFontSize(Pixels(20))
+        .moveTo(0, 0)
+
 // format: off
 
     Outcome(
       SceneUpdateFragment(LayerKeys.Background -> Layer.empty)
         |+| SceneUpdateFragment(LayerKeys.Background -> Layer.Content(Shape.Box(rLeft, Fill.Color(RGBA.White))))
         |+| SceneUpdateFragment(LayerKeys.Background -> Layer.Content(Shape.Box(rRight, Fill.Color(RGBA.White))))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(GameAssets.cornerLayers(rCorners, 1.0, RGBA.Magenta))        )
+        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(GameAssets.cornerLayers(rCorners, 1.0, RGBA.Magenta)))
+
+// The diag fragment shows the diagnostic dMsg pointer handler events in the top LH corner
+//      |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(diag))
+
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.turnButton.draw))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(youAre))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> scorePanel.show(model, bBlinkOn, dSF))
