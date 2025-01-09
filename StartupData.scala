@@ -62,7 +62,7 @@ object FlicFlacConfig:
       viewport = GameViewport(
         GameAssets.GetGameSceneDimensions(8).width,
         GameAssets.GetGameSceneDimensions(8).height
-      ), // FIXME how to get model.boardSize to here instead of 8
+      ), // default model.boardSize is 8
       frameRateLimit = Option(FPS.`30`), // this is the slowest FPS indigo game engine allows ... JP 27/08/24
       clearColor = RGBA.fromHexString("#000000"),
       magnification = 1,

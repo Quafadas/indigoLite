@@ -48,11 +48,32 @@
       </div>
 
       <div>
-        <i>3) Select board size</i><br>
+        <i>3) Select your pieces</i><br>
+        <fieldset>
+          <div>
+            <span title="Select the shape of your pieces. This may be adjusted if both players choose the same shape.">
+              <div id="errorMsg3" class="configErrorMsg"><b>Invalid Piece Shape</b><br>
+                Select either Cylinders or Blocks. <br>
+              </div>
+              <label class="configRadioLabel">
+                Cylinders:
+                <input type="radio" id="cylinders" name="pieceShape" value=0 class="configRadio"/>
+              </label>
+              <label class="configRadioLabel">
+                &nbsp;&nbsp;&nbsp;&nbsp;Blocks:
+                <input type="radio" id="blocks" name="pieceShape" value=1 class="configRadio"/>
+              </label>
+          </span>
+          </div>
+        </fieldset>
+      </div>
+      
+      <div>
+        <i>4) Select board size</i><br>
         <fieldset>
           <div>
             <span title="Select the best size that suits your screen. The final, negotiated, board size is the smallest of your board size and your opponent&apos;s board size.">
-              <div id="errorMsg3" class="configErrorMsg"><b>Invalid Board Size</b><br>
+              <div id="errorMsg4" class="configErrorMsg"><b>Invalid Board Size</b><br>
                 Select one of Small, Medium, Large or Extra Large to specify your preferred board size.<br>
               </div>
               <label class="configRadioLabel">
@@ -77,12 +98,12 @@
       </div>
 
 
-      <i>4) Propose the game parameters</i><br>
+      <i>5) Propose the game parameters</i><br>
       <div>
         <table class ="borderless">        
           <td class ="borderless">
             <span title="This is the number of captures you need to win. The negotiated version of this parameter is the average between your entry and your opponent&apos;s entry. Remember you must win by at least two clear captures.">
-              <div id="errorMsg4A" class="configErrorMsg"><b>Invalid target set as Final Score</b><br>
+              <div id="errorMsg5A" class="configErrorMsg"><b>Invalid target set as Final Score</b><br>
                 The score to win needs to be set as a non-zero positive integer.<br>
               </div>
               <label for="scoreToWin" class="configLabel">Score to Win:</label>
@@ -100,7 +121,7 @@
         <table class ="borderless">        
           <td class ="borderless">
             <span title="This is the number of seconds allowed for each turn. The negotiated version of this parameter is the average between your entry and your opponent&apos;s entry. A resulting value of zero disables this timer">
-              <div id="errorMsg4B" class="configErrorMsg"><b>Invalid Turn Time</b><br>
+              <div id="errorMsg5B" class="configErrorMsg"><b>Invalid Turn Time</b><br>
                 The turn time must be greater than or equal to zero, <br>
                 representing the maximum time allowed in seconds for each turn.<br>
                 A value of zero disables this timer<br>
@@ -121,7 +142,7 @@
         <table class ="borderless">        
           <td class ="borderless">
             <span title= "This is the number of seconds allowed for an extended turn after a successful capture. The negotiated version of this parameter is the average between your entry and your opponent&apos;s entry. A resulting value of zero disables this timer.">
-              <div id="errorMsg4C" class="configErrorMsg"><b>Invalid Captor&apos;s Turn Time</b><br>
+              <div id="errorMsg5C" class="configErrorMsg"><b>Invalid Captor&apos;s Turn Time</b><br>
                 This captor&apos;s timer must be greater than or equal to zero.<br>
                 It represents the time allowed in seconds for extra turns.<br>
                 A value of zero disables this timer.<br>
@@ -140,7 +161,7 @@
       <div>
         <table class ="borderless">        
           <td class ="borderless">
-            <div id="errorMsg4D" class="configErrorMsg">
+            <div id="errorMsg5D" class="configErrorMsg">
               <b>Invalid Random Event Probability</b><br>
               This is an integer representing the percentage probability,<br>
               where 0 <= probability <= 100 <br>
@@ -206,7 +227,7 @@
 
       if (sFlicFlacPlayParams != null) {
         // We have the object decoded so display on parameters panel,
-        // but if FlicFlac-Game2 exists switch namess  
+        // but if FlicFlac-Game2 exists switch names  
         const oFlicFlac = JSON.parse(sFlicFlacPlayParams)
         document.getElementById("readResults").style.border="4px solid blue"
         if (bPlayer2 == true) {
@@ -218,20 +239,25 @@
           document.getElementById("oppoName").defaultValue = oFlicFlac.playPams2_Name2
         }
 
-        if (oFlicFlac.playPams3_BoardSize == 5)
+        if (oFlicFlac.playPams3_PieceShape == 0)
+          document.getElementById("cylinders").checked = true
+        else
+          document.getElementById("blocks").checked = true
+
+        if (oFlicFlac.playPams4_BoardSize == 5)
           document.getElementById("size5").checked = true
-        else if (oFlicFlac.playPams3_BoardSize == 6)
+        else if (oFlicFlac.playPams4_BoardSize == 6)
           document.getElementById("size6").checked = true
-        else if (oFlicFlac.playPams3_BoardSize == 7)
+        else if (oFlicFlac.playPams4_BoardSize == 7)
           document.getElementById("size7").checked = true
-        else if (oFlicFlac.playPams3_BoardSize == 8)
+        else if (oFlicFlac.playPams4_BoardSize == 8)
           document.getElementById("size8").checked = true
         else
           ;
-        document.getElementById("scoreToWin").defaultValue = oFlicFlac.playPams4_ScoreToWin
-        document.getElementById("turnTime").defaultValue = oFlicFlac.playPams5_TurnTime
-        document.getElementById("captorsTime").defaultValue = oFlicFlac.playPams6_CaptorsTime
-        document.getElementById("randEventProb").defaultValue = oFlicFlac.playPams7_RandEventProb      
+        document.getElementById("scoreToWin").defaultValue = oFlicFlac.playPams5_ScoreToWin
+        document.getElementById("turnTime").defaultValue = oFlicFlac.playPams6_TurnTime
+        document.getElementById("captorsTime").defaultValue = oFlicFlac.playPams7_CaptorsTime
+        document.getElementById("randEventProb").defaultValue = oFlicFlac.playPams8_RandEventProb      
       }
       else      
       {
@@ -239,6 +265,7 @@
         console.log("@@@ Cache for PlayParams not found - suggesting defaults")
         document.getElementById("myName").defaultValue = "Player1"
         document.getElementById("oppoName").defaultValue = "Player2"
+        document.getElementById("cylinders").checked = true
         document.getElementById("size8").checked = true
         document.getElementById("scoreToWin").defaultValue = 11
         document.getElementById("turnTime").defaultValue = 20
@@ -255,10 +282,17 @@
 
       var myName = document.getElementById("myName").value
       var oppoName = document.getElementById("oppoName").value
-      var checkRadio = document.querySelector('input[name="boardSize"]:checked')
+      
+      var checkPieceShapeRadio = document.querySelector('input[name="pieceShape"]:checked')
+      var pieceShape = -1
+      if (checkPieceShapeRadio != null) {
+        pieceShape = checkPieceShapeRadio.value
+      }
+      
+      var checkBoardSizeRadio = document.querySelector('input[name="boardSize"]:checked')
       var boardSize = 0
-      if (checkRadio != null) {
-        boardSize = checkRadio.value
+      if (checkBoardSizeRadio != null) {
+        boardSize = checkBoardSizeRadio.value
       }
       var scoreToWin = document.getElementById("scoreToWin").value
       var turnTime = document.getElementById("turnTime").value
@@ -285,33 +319,40 @@
         invalidParams = true;
       }
 
-      if ((boardSize != 5) && (boardSize != 6) && (boardSize != 7) && (boardSize != 8))
+      if ((pieceShape != 0) && (pieceShape != 1))
       {
         document.getElementById("errorMsg3").style.display="block";
         invalidParams = true;
       }
 
+
+      if ((boardSize != 5) && (boardSize != 6) && (boardSize != 7) && (boardSize != 8))
+      {
+        document.getElementById("errorMsg4").style.display="block";
+        invalidParams = true;
+      }
+
       if (scoreToWin < 1)
       {
-        document.getElementById("errorMsg4A").style.display="block";
+        document.getElementById("errorMsg5A").style.display="block";
         invalidParams = true;
       }
 
       if (turnTime < 0)
       {
-        document.getElementById("errorMsg4B").style.display="block";
+        document.getElementById("errorMsg5B").style.display="block";
         invalidParams = true;
       }
 
       if (captorsTime < 0)
       {
-        document.getElementById("errorMsg4C").style.display="block";
+        document.getElementById("errorMsg5C").style.display="block";
         invalidParams = true;        
       }
 
       if ((randEventProb < 0) || (randEventProb > 100))
       {
-        document.getElementById("errorMsg4D").style.display="block";
+        document.getElementById("errorMsg5D").style.display="block";
         invalidParams = true;
       }
 
@@ -327,11 +368,12 @@
         var oPlayParams = {
           playPams1_Name1: myName,
           playPams2_Name2: oppoName,
-          playPams3_BoardSize: boardSize,
-          playPams4_ScoreToWin: scoreToWin,
-          playPams5_TurnTime: turnTime,
-          playPams6_CaptorsTime: captorsTime,
-          playPams7_RandEventProb: randEventProb
+          playPams3_PieceShape: pieceShape,
+          playPams4_BoardSize: boardSize,
+          playPams5_ScoreToWin: scoreToWin,
+          playPams6_TurnTime: turnTime,
+          playPams7_CaptorsTime: captorsTime,
+          playPams8_RandEventProb: randEventProb
         }
 
         window.localStorage.removeItem("FlicFlac-Game1") // remove any previous game for INITIATOR

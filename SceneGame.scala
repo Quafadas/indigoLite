@@ -106,7 +106,6 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
                         dMsg = "##E##"
                         scribe.debug("@@@ PointerEvent " + dMsg)
                         val newHL = model.highLighter.setPosAndShine(pos)
-                        scribe.debug("@@@ FIXME:" + newHL.currentPos + ":" + newHL.displayOn)
                         FlicFlacGameModel.modify(model, None, Some(newHL))
 
                     end match // findPieceByPos
@@ -322,6 +321,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
                 gameScore = newScore,
                 turnTimer = newTT
               )
+
               scribe.debug("@@@ " + model.gameState.toString() + " -> " + newModel.gameState.toString())
               if newModel.gameState == GameState.FINISH then
                 val results = constructResults(newModel)
@@ -338,6 +338,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
               val newPieces = Melee(model).rewardCaptors(model, captors)
               val newModel =
                 model.copy(pieces = newPieces, possibleMoveSpots = emptySpots, gameScore = newScore, turnTimer = newTT)
+
               if newModel.gameState == GameState.FINISH then
                 val results = constructResults(newModel)
                 FlicFlacGameModel
@@ -643,7 +644,7 @@ object GameSceneViewModel:
       GameViewport(
         GameAssets.GetGameSceneDimensions(8).width,
         GameAssets.GetGameSceneDimensions(8).height
-      ), // FIXME how to get model.size to here instead of 8
+      ), // default model.size is 8
       Button(
         buttonAssets = GameAssets.buttonNewGameAssets(1.0),
         bounds = newGameBounds,

@@ -72,7 +72,7 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
 
           val n1 = context.frameContext.startUpData.flicFlacBootData.n1
           val n2 = context.frameContext.startUpData.flicFlacBootData.n2
-          val newModel1 = e.ffgm.copy(ourName = n1, oppoName = n2, ourPieceType = model.ourPieceType)
+          val newModel1 = e.ffgm.copy(ourName = n1, oppoName = n2)
           val bInitiator = (n1.compare(n2) < 0)
           val currentState = if bInitiator then model.initiatorGameState else model.responderGameState
 
@@ -130,7 +130,7 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
             lastTxGameModel = Some(model)
             Outcome(model).addGlobalEvents(WebRtcEvent.SendData(model))
           else if TickTimer.expired(timerP1) then
-            timerP1 = TickTimer.start(RETRANSMIT_TIMEOUT) // restart the tx retransmission timeout
+            timerP1 = TickTimer.start(RETRANSMIT_TIMEOUT) // start the tx retransmission timeout (again)
             lastTxGameModel match
               case Some(lastTxModel) =>
                 scribe.trace("@@@ TimerP1 expired so retransmission")
@@ -152,8 +152,8 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
       model: SceneModel,
       viewModel: SceneViewModel
   ): Outcome[SceneUpdateFragment] =
-    val width = GameAssets.GetGameSceneDimensions(8).width // FIXME assumed size 8
-    val height = GameAssets.GetGameSceneDimensions(8).height // FIXME assumed size 8
+    val width = GameAssets.GetGameSceneDimensions(8).width // default size 8
+    val height = GameAssets.GetGameSceneDimensions(8).height // default size 8
 
     val n1 = context.frameContext.startUpData.flicFlacBootData.n1
     val n2 = context.frameContext.startUpData.flicFlacBootData.n2
@@ -298,6 +298,7 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
           initiatorGameState = GameState.CYLINDER_TURN,
           turnTimer = t2
         )
+
         lastTxGameModel = Some(newModel)
         timerP1 = TickTimer.stop()
         FlicFlacGameModel
@@ -328,19 +329,18 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
         Outcome(initiatorModel)
       case GameState.START_CON3 =>
         scribe.trace("@@@ SceneParams RESPONDER transitions to START_CON4")
+
         // this is the RESPONDER - the ONE AND ONLY time the params marked with ### may be changed
-        val newPieceType = if initiatorModel.ourPieceType == CYLINDER then BLOCK else CYLINDER
         val originalPlayerParams = FlicFlacPlayerParams.getParams(context.frameContext.startUpData)
-        val newBoardSize = initiatorModel.boardSize.min(originalPlayerParams.playPams3_BoardSize)
-        val newScoreToWin = (initiatorModel.winningScore + originalPlayerParams.playPams4_ScoreToWin) / 2
-        val newTurnTimer = (initiatorModel.turnTimer.iTotalTurnTime + originalPlayerParams.playPams5_TurnTime) / 2
-        val newCaptorsTimer = (initiatorModel.turnTimer.iCaptorsTurnTime + originalPlayerParams.playPams6_CaptorsTime) / 2
-        val newRandEventFreq = (initiatorModel.randEventFreq + originalPlayerParams.playPams7_RandEventProb) / 2
+        val newBoardSize = initiatorModel.boardSize.min(originalPlayerParams.playPams4_BoardSize)
+        val newScoreToWin = (initiatorModel.winningScore + originalPlayerParams.playPams5_ScoreToWin) / 2
+        val newTurnTimer = (initiatorModel.turnTimer.iTotalTurnTime + originalPlayerParams.playPams6_TurnTime) / 2
+        val newCaptorsTimer = (initiatorModel.turnTimer.iCaptorsTurnTime + originalPlayerParams.playPams7_CaptorsTime) / 2
+        val newRandEventFreq = (initiatorModel.randEventFreq + originalPlayerParams.playPams8_RandEventProb) / 2
 
         val newModel = initiatorModel.copy(
           responderGameState = GameState.START_CON4,
           boardSize = newBoardSize, // ................................###
-          ourPieceType = newPieceType, // .............................###
           winningScore = newScoreToWin, // ............................###
           turnTimer = TurnTimer(newTurnTimer, newCaptorsTimer), // ....###
           randEventFreq = newRandEventFreq // .........................###
@@ -403,6 +403,7 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
       case GameState.START_CON8 =>
         if currentState == GameState.START_CON8 then
           scribe.trace("@@@ SceneParams RESPONDER invokes SceneGame")
+
           val t1 = initiatorModel.turnTimer
           val t2 = TurnTimer.restartForTurn(t1)
           val newModel = initiatorModel.copy(
@@ -410,6 +411,7 @@ object SceneParams extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFla
             gameState = GameState.CYLINDER_TURN,
             turnTimer = t2
           )
+
           lastTxGameModel = Some(newModel)
           timerP1 = TickTimer.stop()
           FlicFlacGameModel

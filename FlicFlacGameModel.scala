@@ -57,28 +57,16 @@ object FlicFlacGameModel:
   def creation(playerParams: FlicFlacPlayerParams): FlicFlacGameModel =
     scribe.debug("@@@ FlicFlacGameModel creation")
 
-    val rand = new scala.util.Random
-    val r = rand.nextInt(10)
-    val pieceType =
-      if r >= 5 then
-        // Initiator as BLOCK ... (as Responder our setting, iOurPieceType, will be overridden)
-        BLOCK
-      else
-        // Initiator as CYLINDER ... (as Responder our setting, iOurPieceType, will be overridden)
-        CYLINDER
-      end if
-    end pieceType
-
     val sOurName = playerParams.playPams1_Name1
-    val sOppoName = playerParams.playPams2_Name2
-    val boardSize = playerParams.playPams3_BoardSize
-    val iOurPieceType = pieceType
-    val iWinningScore = playerParams.playPams4_ScoreToWin
-    val iRandEventFreq = playerParams.playPams7_RandEventProb
+    val sOppoName = playerParams.playPams2_Name2    
+    val iOurShape = playerParams.playPams3_PieceShape  
+    val boardSize = playerParams.playPams4_BoardSize
+    val iWinningScore = playerParams.playPams5_ScoreToWin
+    val iRandEventFreq = playerParams.playPams8_RandEventProb
     val score = (0, 0)
     // pieces
     val startingSpots: Spots = Spots(Set.empty)
-    val turnTimer = TurnTimer(playerParams.playPams5_TurnTime, playerParams.playPams6_CaptorsTime)
+    val turnTimer = TurnTimer(playerParams.playPams6_TurnTime, playerParams.playPams7_CaptorsTime)
     val highLighter = new HighLighter(false, Point(0, 0))
 
     // create the hexboard
@@ -88,7 +76,7 @@ object FlicFlacGameModel:
       sOurName,
       sOppoName,
       boardSize,
-      iOurPieceType,
+      iOurShape,
       iWinningScore,
       iRandEventFreq,
       GameState.START_CON1,
