@@ -129,7 +129,8 @@ final case class Melee(model: FlicFlacGameModel):
   def detectCaptors(model: FlicFlacGameModel): Set[(Piece)] =
     val allPieces = model.pieces.modelPieces
     val (cylinders, blocks) = allPieces.splitAt(6)
-    val vPrisoners = allPieces.filter(p => p.bCaptured == true)
+    // second part of filter below discards our own pieces (ie kamikasi prisoners)
+    val vPrisoners = allPieces.filter(p => (p.bCaptured == true) && (p.pieceShape != model.ourPieceType))
     var setCaptors = Set.empty[(Piece)]
 
     vPrisoners.foreach { p =>

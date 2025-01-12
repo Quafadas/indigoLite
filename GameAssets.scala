@@ -27,12 +27,16 @@ object GameAssets:
   scribe.debug("@@@ Object GameAssets START")
 
   /* Game rectangle found by experimentation.
-     This rectangle dimensions also laid out in html file
-     This is the "master" setting for the game dimensions 
-     for all of the scala code
-  */
+     The largest rectangle dimensions (size 8) also laid out in html file
+   */
 
-  val GameSceneDimensions = Rectangle(0, 0, 1580, 1300)
+  def GetGameSceneDimensions(boardSize: Int): Rectangle =
+    boardSize match
+      case 5 => Rectangle(0, 0, 1150, 1250)
+      case 6 => Rectangle(0, 0, 1200, 1250)
+      case 7 => Rectangle(0, 0, 1350, 1250)
+      case _ => Rectangle(0, 0, 1500, 1300)
+  end GetGameSceneDimensions
 
   def get(): Set[AssetType] =
     Set(
@@ -55,21 +59,53 @@ object GameAssets:
       .withCrop(100, 0, 91, 81)
       .scaleBy(sf, sf)
 
-  def gScorePanelBlinkOff(sf: Double): Graphic[Material.ImageEffects] =
-    Graphic(Rectangle(0, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName)))
+  def gScorePanelHighlightOff(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(0, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf, sf)
 
-  def gScorePanelBlinkCylinder(sf: Double): Graphic[Material.ImageEffects] =
-    Graphic(Rectangle(250, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName)))
+  def gScorePanelHighlightCylinder(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(250, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf, sf)
 
-  def gScorePanelBlinkBlock (sf: Double): Graphic[Material.ImageEffects] =
-    Graphic(Rectangle(500, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName)))
+  def gScorePanelHighlightBlock(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(500, 0, 250, 440), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf, sf)
+
+  def gScorePanelMagentaCylinder(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(784, 204, 122, 142), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf, sf)
+
+  def gScorePanelGreyCylinder(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(914, 204, 122, 142), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf, sf)
+
+  def gScorePanelMagentaBlock(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(784, 354, 122, 142), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf, sf)
+
+  def gScorePanelGreyBlock(sf: Double): Graphic[Material.ImageEffects] =
+    Graphic(Rectangle(914, 354, 122, 142), 3, Material.ImageEffects(AssetName(spAssetName))).scaleBy(sf, sf)
+
+  def gScorePanelPieceAndFlip(pieceShape: Int, pieceIdentity: Int, pieceFlipped: Boolean, sf: Double): Graphic[Material.ImageEffects] =
+    val xPos =
+      // 4 is border size, 130 is horizontal distance between each panel
+      if pieceFlipped then
+        // flipped so add 130
+        4 + (2 * pieceIdentity * 130) + 130
+      else
+        // normal
+        4 + (2 * pieceIdentity * 130)
+      end if
+    end xPos
+
+    val yPos = 504 + (150 * pieceShape) // 4 is border size, panels location 500, vertical distance between cylinders and blocks is 150
+
+    val rCrop = Rectangle(xPos, yPos, 122, 142) // 122 x 142 is the size of the transparent piece panels
+    Graphic(Rectangle(0, 500, 1600, 380), 3, Material.ImageEffects(AssetName(spAssetName)))
+      .withCrop(rCrop.x, rCrop.y, rCrop.width, rCrop.height)
+      .scaleBy(sf, sf)
+  end gScorePanelPieceAndFlip
 
   def gParamsPanel(sf: Double): Graphic[Material.ImageEffects] =
-    Graphic(Rectangle(0, 0, 250, 425), 3, Material.ImageEffects(AssetName(pmAssetName)))
+    Graphic(Rectangle(0, 0, 250, 425), 3, Material.ImageEffects(AssetName(pmAssetName))).scaleBy(sf, sf)
 
-  def gTimeSliderActiveBody(sf: Double): Graphic[Material.ImageEffects] =
+  def gTimeSliderActiveBody(cropHeight: Int, sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(0, 0, 150, 1220), 3, Material.ImageEffects(AssetName(tsAssetName)))
-      .withCrop(0, 25, 50, 1195)
+      .withCrop(0, 25 + cropHeight, 50, 1195 - cropHeight)
       .scaleBy(sf, sf)
 
   def gTimeSliderActiveTop(sf: Double): Graphic[Material.ImageEffects] =
@@ -77,9 +113,9 @@ object GameAssets:
       .withCrop(0, 0, 50, 25)
       .scaleBy(sf, sf)
 
-  def gTimeSliderInactiveBody(sf: Double): Graphic[Material.ImageEffects] =
+  def gTimeSliderInactiveBody(cropHeight: Int, sf: Double): Graphic[Material.ImageEffects] =
     Graphic(Rectangle(0, 0, 150, 1220), 3, Material.ImageEffects(AssetName(tsAssetName)))
-      .withCrop(100, 25, 50, 1195)
+      .withCrop(100, 25 + cropHeight, 50, 1195 - cropHeight)
       .scaleBy(sf, sf)
 
   def gTimeSliderInactiveTop(sf: Double): Graphic[Material.ImageEffects] =
@@ -192,13 +228,13 @@ object GameAssets:
     val newWidth20 = ((r.width - 20).toDouble * sf).toInt
     val newHeight20 = ((r.height - 20).toDouble * sf).toInt
     val layerC1 = (GameAssets.cornerTopLeft)
-      .moveTo(r.left, r.top)
+      .moveTo(0, r.top)
       .modifyMaterial(_.withTint(cornerColor))
     val layerC2 = (GameAssets.cornerTopRight)
       .moveTo(newWidth20, r.top)
       .modifyMaterial(_.withTint(cornerColor))
     val layerC3 = (GameAssets.cornerBottomLeft)
-      .moveTo(r.left, newHeight20)
+      .moveTo(0, newHeight20)
       .modifyMaterial(_.withTint(cornerColor))
     val layerC4 = (GameAssets.cornerBottomRight)
       .moveTo(newWidth20, newHeight20)

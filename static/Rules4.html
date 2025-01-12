@@ -21,7 +21,7 @@
 9) Health Calculation
 </b></h2>
 <p>
-  When two (or more) pieces are side by side a melee is formed. The health of all pieces is recalculated on every move during
+  When two (or more) opposing pieces are side by side a melee is formed, regardless of which player moved. The health of all pieces is recalculated on every move during
   a turn. Any piece with a negative health is due to be captured at the end of the turn. Such a piece changes color to grey.
   As further pieces are added to a melee, a grey piece due to be captured, may recover it&apos;s health and have it&apos;s color 
   restored. Just as a reminder:
@@ -121,33 +121,38 @@ Consider two pieces side by side.
   <div class="columnM2" style="padding-top: 20px; padding-left: 20px;">
     <table>
       <tr>
-        <th colspan="4" style="background-color:lightcoral;">Under Attack</th>
+        <th colspan="5" style="background-color:lightcoral;">Under Attack</th>
       </tr>
       <tr>
-        <td colspan="3" style="background-color:lightcoral;">Attacker Flies <br>My Body Color</td>
-        <td colspan="1" rowspan="3">Attacker Does Not Fly <br>My Body Color</td>
+        <td colspan="4" rowspan="1" style="background-color:lightcoral;">Attacker flies My Body Color</td>
+        <td colspan="1" rowspan="3">Attacker<br>does not fly<br>My Body Color</td>
       </tr>
       <tr>
-        <td rowspan="2" style="background-color:lightcoral;">I am Defenseless ...<br>None of my Flying Colours <br>match the Attackers Body Color</td>
-        <td colspan="2" style="background-color:lightcoral;">I am Defending with a <br>Flying Colour</td>
+        <td colspan="2" style="background-color:lightcoral;">Defenseless<br>I am not flying the colours <br>that match the Attacker&apos;s Body Color</td>
+        <td colspan="2" style="background-color:lightcoral;">I am flying the Attacker&apos;s <br>Body Colour</td>
       </tr>
       <tr>
         <td style="background-color:lightcoral;">Attacker is <br> Empowered</td>
         <td style="background-color:lightcoral;">Attacker is not <br>Empowered</td>
+        <td style="background-color:lightcoral;">Attacker is <br> Empowered</td>
+        <td style="background-color:lightcoral;">Attacker is not<br>Empowered</td>
       </tr>
       <tr>
-        <td>-20</td>
+        <td>-22</td>
+        <td>-21</td>
         <td>-2</td>
         <td>-1</td>
         <td>0</td>
       </tr>
-    </table>    
+     
+</table>    
   </div>
 </div>
+
 <pr>
   <i>
-    (The health of a piece is governed by all the other adjacent pieces, as well as it&apos;s own flying colours 
-    and possible empowerment.)
+    (The health of a piece is governed by all of the other adjacent pieces, as well as it&apos;s own flying colours 
+    and possible position of empowerment. The results from the three tables above may apply for each piece)
   </i>    
 </pr>
 

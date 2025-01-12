@@ -94,10 +94,10 @@ final case class Pieces(
 
       // this is the mechanism for blinking pieces
 
-      val bPotentialBlinker = (p.pieceShape, model.gameState) match
-        case (CYLINDER, GameState.CYLINDER_TURN) => true
-        case (BLOCK, GameState.BLOCK_TURN)       => true
-        case (_, _)                              => false
+      val bPotentialBlinker = (p.pieceShape, model.gameState, model.ourPieceType) match
+        case (CYLINDER, GameState.CYLINDER_TURN, CYLINDER) => true
+        case (BLOCK, GameState.BLOCK_TURN, BLOCK)          => true
+        case (_, _, _)                                     => false
 
       val bShow =
         if bPotentialBlinker then

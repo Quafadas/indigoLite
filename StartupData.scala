@@ -59,11 +59,14 @@ object FlicFlacConfig:
   scribe.debug("@@@ Object FlicFlacConfig START")
   val config: GameConfig =
     GameConfig(
-      viewport = GameViewport(GameAssets.GameSceneDimensions.width, GameAssets.GameSceneDimensions.height),
-      frameRateLimit = Option(FPS.`30`),  // this is the slowest FPS indigo game engine allows ... JP 27/08/24
+      viewport = GameViewport(
+        GameAssets.GetGameSceneDimensions(8).width,
+        GameAssets.GetGameSceneDimensions(8).height
+      ), // default model.boardSize is 8
+      frameRateLimit = Option(FPS.`30`), // this is the slowest FPS indigo game engine allows ... JP 27/08/24
       clearColor = RGBA.fromHexString("#000000"),
       magnification = 1,
-      transparentBackground = false,
+      transparentBackground = true,
       // the default setting from indigo is "ResizePreserveAspect" but Simon found that this corrupts the
       // css height attribute on a resize, which in turn chops off the bottom of the board.
       // The setting we discovered is simply "Resize" which keeps the width and height intact ... JP 27/08/24

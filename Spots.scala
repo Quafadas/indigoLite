@@ -30,11 +30,14 @@ final case class Spots(
     if bBlocks || bCylinders then
       if Piece.moved(piece) then
         scribe.debug("@@@ calculateSpots piece moved")
+        // we know the piece has moved and want to provide the opportunity for it to return back to it's
+        // turn starting position (PosA). However, after this piece moved another piece may also have moved and
+        // occupied PosA. The next match checks for this ...
         model.pieces.modelPieces.find(p => (p.pCurPos == piece.pTurnStartPos)) match
           case Some(p) =>
             Spots(Set.empty)
           case None =>
-            Spots(Set((piece.pTurnStartPos.x, piece.pTurnStartPos.y))) // starting position only
+            Spots(Set((piece.pTurnStartPos.x, piece.pTurnStartPos.y), (piece.pCurPos.x, piece.pCurPos.y))) // starting & current positions only
         end match
       else
         scribe.debug("@@@ calculateSpots piece not moved @ " + piece.pCurPos)
@@ -59,43 +62,58 @@ final case class Spots(
 
     if piece.pCurPos == piece.pHomePos then
 
-      scribe.debug("@@@ Spotify TP1")
-
       // we have a piece in the home position so display unoccupied starting places
+      // these places vary according to board size
       var ss1 = Set.empty[(Int, Int)]
 
       piece.pieceShape match
         case CYLINDER =>
           if piece.pieceIdentity == CB || piece.pieceIdentity == CR || piece.pieceIdentity == CY then
             // spots for top left
-            ss1 = Set((0, 9), (1, 8), (1, 7), (2, 6), (2, 5), (3, 4), (3, 3), (4, 2))
+            model.boardSize match
+              case 5 => ss1 = Set((2, 9), (3, 8), (3, 7), (4, 6), (4, 5))
+              case 6 => ss1 = Set((1, 9), (2, 8), (2, 7), (3, 6), (3, 5), (4, 4))
+              case 7 => ss1 = Set((1, 9), (2, 8), (2, 7), (3, 6), (3, 5), (4, 4), (4, 3))
+              case _ => ss1 = Set((0, 9), (1, 8), (1, 7), (2, 6), (2, 5), (3, 4), (3, 3), (4, 2))
           else
             // spots for bottom right
-            ss1 = Set((4, 30), (4, 29), (5, 28), (5, 27), (6, 26), (6, 25), (7, 24), (7, 23))
+            model.boardSize match
+              case 5 => ss1 = Set((4, 21), (5, 20), (5, 19), (6, 18), (6, 17))
+              case 6 => ss1 = Set((4, 24), (4, 23), (5, 22), (5, 21), (6, 20), (6, 19))
+              case 7 => ss1 = Set((4, 27), (5, 26), (5, 25), (6, 24), (6, 23), (7, 22), (7, 21))
+              case _ => ss1 = Set((4, 30), (4, 29), (5, 28), (5, 27), (6, 26), (6, 25), (7, 24), (7, 23))
           end if
         case BLOCK =>
           if piece.pieceIdentity == CB || piece.pieceIdentity == CR || piece.pieceIdentity == CY then
-            // spots for top right
-            ss1 = Set((0, 23), (1, 24), (1, 25), (2, 26), (2, 27), (3, 28), (3, 29), (4, 30))
-          else
             // spots for bottom left
-            ss1 = Set((4, 2), (4, 3), (5, 4), (5, 5), (6, 6), (6, 7), (7, 8), (7, 9))
+            model.boardSize match
+              case 5 => ss1 = Set((2, 17), (3, 18), (3, 19), (4, 20), (4, 21))
+              case 6 => ss1 = Set((1, 19), (2, 20), (2, 21), (3, 22), (3, 23), (4, 24))
+              case 7 => ss1 = Set((1, 21), (2, 22), (2, 23), (3, 24), (3, 25), (4, 26), (4, 27))
+              case _ => ss1 = Set((0, 23), (1, 24), (1, 25), (2, 26), (2, 27), (3, 28), (3, 29), (4, 30))
+          else
+            // spots for top right
+            model.boardSize match
+              case 5 => ss1 = Set((4, 5), (5, 6), (5, 7), (6, 8), (6, 9))
+              case 6 => ss1 = Set((4, 4), (4, 5), (5, 6), (5, 7), (6, 8), (6, 9))
+              case 7 => ss1 = Set((4, 3), (5, 4), (5, 5), (6, 6), (6, 7), (7, 8), (7, 9))
+              case _ => ss1 = Set((4, 2), (4, 3), (5, 4), (5, 5), (6, 6), (6, 7), (7, 8), (7, 9))
           end if
       end match
 
       val ss2 = ss1.filter { case (aX, aY) => hexBoard4.isThisHexFree(Point(aX, aY), vPieces) }
-      scribe.debug("@@@ spotify Home free hex count: " + ss2.size)
-      Spots(ss2)
+      val ss3 = ss2 + ((piece.pHomePos.x, piece.pHomePos.y))
+      Spots(ss3)
     else if piece.bMoved then
-      scribe.debug("@@@ Spotify TP2")
       // we have a piece that has already moved this turn
       val ss1 = Set((piece.pTurnStartPos.x, piece.pTurnStartPos.y))
       Spots(ss1)
     else
-      scribe.debug("@@@ Spotify TP3")
 
-      // we have a piece on the board trying to move so calculate valid moves from Ring1,Ring2,Ring3
+      // we have a piece on the board trying to move so calculate valid moves from StartPos, Ring1,Ring2,Ring3
       // Inner Ring
+
+      val setStartPos = Set((piece.pTurnStartPos.x, piece.pTurnStartPos.y))
 
       val setInnerRing = spotRingQRS(q, r, s)
       var setInnerRingAxAy = Set.empty[(Int, Int)]
@@ -152,7 +170,7 @@ final case class Spots(
             setOuterRingQRS = setOuterRingQRS + q3r3s3
         }
       }
-      Spots(setInnerRingAxAy.union(setMiddleRingAxAy).union(setOuterRingAxAy))
+      Spots(setStartPos.union(setInnerRingAxAy).union(setMiddleRingAxAy).union(setOuterRingAxAy))
     end if
 
   end spotify

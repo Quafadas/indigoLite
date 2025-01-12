@@ -31,6 +31,7 @@ final case class HighLighter(
       val paintPos = hexBoard4.getXsYs(currentPos)
       Layer(layer.moveTo(pB.x + paintPos.x, pB.y + paintPos.y))
     else
+      // Blink effect
       Layer.empty
     end if
   end paint

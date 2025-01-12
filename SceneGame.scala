@@ -27,22 +27,34 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
   def eventFilters: EventFilters = EventFilters.Permissive
 
   val subSystems: Set[SubSystem[FlicFlacGameModel]] = Set.empty
-  
+
   var bBlinkOn = true
   var dMsg = "-----"
-
 
   def updateModel(
       context: SceneContext[FlicFlacStartupData],
       model: FlicFlacGameModel
-  ): GlobalEvent => Outcome[FlicFlacGameModel] = {
+  ): GlobalEvent => Outcome[FlicFlacGameModel] =
     e =>
-      try {
+      try
         e match
+
+          case StartLiveGame =>
+            scribe.debug("@@@ StartLiveGame with BoardSize:" + model.boardSize)
+            hexBoard4.create(model.boardSize) // ................................ establish new hexboard
+            val startingPieces = FlicFlacGameModel.summonPieces(hexBoard4) // ... establish new starting positions
+            FlicFlacGameModel.modifyPieces(model, startingPieces) // ............ update model
+
           case e: FlicFlacGameUpdate.Info =>
             scribe.debug("@@@ FlicFlacGameUpdate.Info")
             FlicFlacGameModel.modify(e.ffgm, None, None)
-            Outcome(e.ffgm)
+            if e.ffgm.gameState == GameState.FINISH then
+              val resultsMsg = constructResults(e.ffgm)
+              Outcome(e.ffgm).addGlobalEvents(Freeze.PanelContent(PanelType.P_RESULTS, resultsMsg))
+            else
+              // game is ongoing
+              Outcome(e.ffgm)
+            end if
 
           case e: PointerEvent.PointerDown =>
             val clickPoint = e.position
@@ -50,7 +62,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
             hexPosn match
               case Some(pos) =>
                 // Pointer Down, Pos on Grid
-                checkTurn(model,"PDOWN")
+                checkTurnValidAndThrow(model, "Pointer DOWN event") // throws exception if out of turn
                 FlicFlacGameModel.findPieceSelected(model) match
                   case Some(piece) =>
                     // Pointer Down, Pos on Grid, Piece Selected
@@ -94,7 +106,6 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
                         dMsg = "##E##"
                         scribe.debug("@@@ PointerEvent " + dMsg)
                         val newHL = model.highLighter.setPosAndShine(pos)
-                        scribe.debug("@@@ FIXME:" + newHL.currentPos + ":" + newHL.displayOn)
                         FlicFlacGameModel.modify(model, None, Some(newHL))
 
                     end match // findPieceByPos
@@ -102,22 +113,31 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
 
               case None =>
                 // Pointer Down, Pos off Grid
-                FlicFlacGameModel.findPieceSelected(model) match
-                  case Some(piece) =>
-                    // Pointer Down, Pos off Grid, Piece Selected <<##F##>>
-                    dMsg = "##F##"
-                    scribe.debug("@@@ PointerEvent " + dMsg)
-                    val newHL = model.highLighter.shine(false)
-                    val updatedPiece = Piece.setPosDeselect(piece, piece.pHomePos)
-                    FlicFlacGameModel.modify(model, Some(updatedPiece), Some(newHL))
+                if checkTurnValid(model) then
+                  FlicFlacGameModel.findPieceSelected(model) match
+                    case Some(piece) =>
+                      // Pointer Down, Pos off Grid, Piece Selected <<##F##>>
+                      dMsg = "##F##"
+                      scribe.debug("@@@ PointerEvent " + dMsg)
+                      val newHL = model.highLighter.shine(false)
+                      val updatedPiece = Piece.setPosDeselect(piece, piece.pHomePos)
+                      // clear any panel showing
+                      FlicFlacGameModel
+                        .modify(model, Some(updatedPiece), Some(newHL))
+                        .addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("", "")))
 
-                  case None =>
-                    // Pointer Down, Pos off Grid, No Piece Selected <<##G##>>
-                    dMsg = "##G##"
-                    scribe.debug("@@@ PointerEvent " + dMsg)
-                    val newHL = model.highLighter.shine(false)
-                    FlicFlacGameModel.modify(model, None, Some(newHL))
-                      .addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, "")) // this clears any panel showing
+                    case None =>
+                      // Pointer Down, Pos off Grid, No Piece Selected <<##G##>>
+                      dMsg = "##G##"
+                      scribe.debug("@@@ PointerEvent " + dMsg)
+                      val newHL = model.highLighter.shine(false)
+                      // clear any panel showing
+                      FlicFlacGameModel.modify(model, None, Some(newHL)).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("", "")))
+                  end match // findPieceSelected
+                else
+                  // although out of turn, the player is allowed to clear the local error panel (no msg sent to opponent)
+                  Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("", "")))
+                end if
             end match // hexXYCoordsFromDisplayXY
 
           case e: PointerEvent.PointerUp =>
@@ -126,6 +146,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
             hexPosn match
               case Some(pos) =>
                 // Pointer Up, Pos on Grid
+                checkTurnValidAndThrow(model, "Pointer UP event") // throws exception if out of turn
                 FlicFlacGameModel.findPieceSelected(model) match
                   case Some(piece) =>
                     // Pointer Up, Pos on Grid, Piece Selected
@@ -191,7 +212,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
                     val r = hexBoard4.hexArray(w)(h).r
                     val s = hexBoard4.hexArray(w)(h).s
                     scribe.debug(
-                      "@@@ Magenta hexboard3: (w,h) x,y,q,r,s = (" + w + "," + h + ") : "
+                      "@@@ Magenta hexboard4: (ax,ay) x,y,q,r,s = (" + w + "," + h + ") : "
                         + x + "," + y + " : " + q + "," + r + "," + s
                     )
                     FlicFlacGameModel.modify(model, None, None)
@@ -199,32 +220,37 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
                 end match // findPieceSelected
 
               case None =>
-                // Pointer Up, Pos off Grid
-                FlicFlacGameModel.findPieceSelected(model) match
-                  case Some(piece) =>
-                    // Pointer Up, Pos off Grid, Piece Selected
-                    dMsg = "##M##"
-                    scribe.debug("@@@ PointerEvent " + dMsg)
-                    val newHL = model.highLighter.shine(false)
-                    val updatedPiece = Piece.setPosDeselect(piece, piece.pCurPos)
-                    FlicFlacGameModel.modify(model, Some(updatedPiece), Some(newHL)).flatMap { updatedModel =>
-                      val newPieces = Melee(updatedModel).combat(updatedModel)
-                      FlicFlacGameModel.modifyPieces(updatedModel, newPieces)
-                    }
+                if checkTurnValid(model) then
+                  // Pointer Up, Pos off Grid
+                  FlicFlacGameModel.findPieceSelected(model) match
+                    case Some(piece) =>
+                      // Pointer Up, Pos off Grid, Piece Selected
+                      dMsg = "##M##"
+                      scribe.debug("@@@ PointerEvent " + dMsg)
+                      val newHL = model.highLighter.shine(false)
+                      val updatedPiece = Piece.setPosDeselect(piece, piece.pCurPos)
+                      FlicFlacGameModel.modify(model, Some(updatedPiece), Some(newHL)).flatMap { updatedModel =>
+                        val newPieces = Melee(updatedModel).combat(updatedModel)
+                        FlicFlacGameModel.modifyPieces(updatedModel, newPieces).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("", "")))
+                      }
 
-                  case None =>
-                    // Pointer Up, Pos off Grid, No piece selected
-                    dMsg = "##N##"
-                    scribe.debug("@@@ PointerEvent " + dMsg)
-                    val newHL = model.highLighter.shine(false)
-                    FlicFlacGameModel.modify(model, None, Some(newHL))
-                end match // findPieceSelected
-
+                    case None =>
+                      // Pointer Up, Pos off Grid, No piece selected
+                      dMsg = "##N##"
+                      scribe.debug("@@@ PointerEvent " + dMsg)
+                      val newHL = model.highLighter.shine(false)
+                      FlicFlacGameModel.modify(model, None, Some(newHL)).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("", "")))
+                  end match // findPieceSelected
+                else
+                  // although out of turn, the player is allowed to clear the local error panel (no msg sent to opponent)
+                  Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_INVISIBLE, ("", "")))
+                end if
             end match // hexXYCoordsFromDisplayXY
 
           case ButtonNewGameEvent =>
-            checkTurn(model,"NEWGAME")
-            Outcome(FlicFlacGameModel.reset(model))
+            checkTurnValidAndThrow(model, "Button NEW GAME Event") // throws exception if out of turn
+            val newModel = FlicFlacGameModel.reset(model)
+            FlicFlacGameModel.modify(newModel, None, None)
 
           case ButtonPlusEvent =>
             scribe.debug("@@@ ButtonPlusEvent")
@@ -244,11 +270,11 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
 
           case ViewportResize(gameViewPort) =>
             var dSF = 1.0
-            if (FlicFlacGameModel.getStartUpStates().contains(model.gameState)) then
+            if FlicFlacGameModel.getStartUpStates().contains(model.gameState) then
               scribe.debug("@@@ ViewPortResize from scratch")
               val w = gameViewPort.width - hexBoard4.pBase.x
               val h = gameViewPort.height - hexBoard4.pBase.y
-              dSF = GetScaleFactor(w, h, GameAssets.GameSceneDimensions)
+              dSF = GetScaleFactor(w, h, GameAssets.GetGameSceneDimensions(model.boardSize))
               scribe.debug("@@@ updateModel ViewportResize w:h->s " + w + ":" + h + "->" + dSF)
             else
               dSF = hexBoard4.scalingFactor
@@ -262,22 +288,31 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
             FlicFlacGameModel.modify(newModel, None, None)
 
           case ButtonTurnEvent.Occurence() =>
+            checkTurnValidAndThrow(model, "Button NEW TURN Event") // throws exception if out of turn
             scribe.debug("@@@ ButtonTurnEvent")
-            checkTurn(model, "BTURN")
             val emptySpots = Spots(Set.empty)
             val newScore = model.pieces.extraTurnScoring(model)
             val captors = Melee(model).detectCaptors(model)
             if captors.isEmpty then
               val newTT = TurnTimer.restartForTurn(model.turnTimer)
               val newPieces = model.pieces.newTurn(model)
-              val newGameState = 
-                if model.gameState == GameState.CYLINDER_TURN then
-                  scribe.debug("@@@@ BLOCK TURN @@@")
+              val cylinderScore = newScore._1
+              val blockScore = newScore._2
+              val newGameState =
+                if (cylinderScore >= model.winningScore) && (cylinderScore >= blockScore + 2) then
+                  scribe.debug("@@@ CYLINDERS WIN")
+                  GameState.FINISH
+                else if (blockScore >= model.winningScore) && (blockScore >= cylinderScore + 2) then
+                  scribe.debug("@@@ BLOCKS WIN")
+                  GameState.FINISH
+                else if model.gameState == GameState.CYLINDER_TURN then
+                  scribe.debug("@@@ BLOCK TURN @@@")
                   GameState.BLOCK_TURN
                 else
                   scribe.debug("@@@ CYLINDER TURN @@@")
                   GameState.CYLINDER_TURN
                 end if
+              end newGameState
 
               val newModel = model.copy(
                 gameState = newGameState,
@@ -286,24 +321,47 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
                 gameScore = newScore,
                 turnTimer = newTT
               )
-              scribe.debug("@@@ " + model.gameState.toString() + " -> " + newModel.gameState.toString()) 
-              FlicFlacGameModel.modify(newModel, None, None)
+
+              scribe.debug("@@@ " + model.gameState.toString() + " -> " + newModel.gameState.toString())
+              if newModel.gameState == GameState.FINISH then
+                val results = constructResults(newModel)
+                FlicFlacGameModel
+                  .modify(newModel, None, None)
+                  .addGlobalEvents(Freeze.PanelContent(PanelType.P_RESULTS, results))
+              else
+                // game ongoing
+                FlicFlacGameModel.modify(newModel, None, None)
+              end if
             else
               scribe.debug("@@@ CAPTORS @@@")
               val newTT = TurnTimer.restartForCaptors(model.turnTimer)
               val newPieces = Melee(model).rewardCaptors(model, captors)
-              val newModel = model.copy(pieces = newPieces, possibleMoveSpots = emptySpots, gameScore = newScore, turnTimer = newTT)
-              FlicFlacGameModel.modify(newModel, None, None)
+              val newModel =
+                model.copy(pieces = newPieces, possibleMoveSpots = emptySpots, gameScore = newScore, turnTimer = newTT)
+
+              if newModel.gameState == GameState.FINISH then
+                val results = constructResults(newModel)
+                FlicFlacGameModel
+                  .modify(newModel, None, None)
+                  .addGlobalEvents(Freeze.PanelContent(PanelType.P_RESULTS, results))
+              else
+                // model ongoing
+                FlicFlacGameModel.modify(newModel, None, None)
+              end if
             end if
 
-          // Keyboard Interface for testing purposes only ...
+          // FIXME ... Keyboard Interface for testing purposes only ...
           case k: KeyboardEvent.KeyDown =>
             if k.keyCode == Key.ADD then Outcome(model).addGlobalEvents(ButtonPlusEvent)
             else if k.keyCode == Key.SUBTRACT then Outcome(model).addGlobalEvents(ButtonMinusEvent)
             else if k.keyCode == Key.ENTER then Outcome(model).addGlobalEvents(ButtonTurnEvent.Occurence())
             else if k.keyCode == Key.F3 then Outcome(model).addGlobalEvents(SceneEvent.Previous)
-            else if k.keyCode == Key.F4 then Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR,"Test Error from GAME FKEY_F4"))
-            else Outcome(model)
+            else if k.keyCode == Key.F4 then
+              // ...
+              Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, ("Error", "Test Error from GAME FKEY_F4")))
+            else
+              // ...
+              Outcome(model)
             end if
 
           case FrameTick =>
@@ -321,6 +379,7 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
                 // signal a button turn event to switch players
                 Outcome(model).addGlobalEvents(ButtonTurnEvent.Occurence())
               else
+                // timer still running
                 Outcome(model)
               end if
             else
@@ -335,25 +394,40 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
 
           case _ =>
             Outcome(model)
-      } 
-      catch {
-          case t: Throwable =>
-            scribe.error("SceneGame updateModel " + t.getMessage())
-            Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, t.getMessage()))
-      }
-  
-  } // end of GlobalEvent => Outcome[FlicFlacGameModel]
+      catch
+        case h: HintException =>
+          scribe.error("SceneGame updateModel " + h.getMessage())
+          Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_HINT, ("*** FlicFlac Hint ***", h.getMessage())))
+
+        case t: Throwable =>
+          scribe.error("SceneGame updateModel " + t.getMessage())
+          Outcome(model).addGlobalEvents(Freeze.PanelContent(PanelType.P_ERROR, ("Error", t.getMessage())))
+
+  // end of GlobalEvent => Outcome[FlicFlacGameModel]
 
   end updateModel
 
-  def checkTurn(model: FlicFlacGameModel, errPos: String) : Unit = 
-    val bCylinder = (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == BLOCK)
-    val bBlock = (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == CYLINDER)
-    if (bCylinder == true) || (bBlock == true) then
-      throw new Exception(errPos + " ... Please wait for your turn")
+  def checkTurnValidAndThrow(model: FlicFlacGameModel, errPos: String): Unit =
+    val bBadCylinder = (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == BLOCK)
+    val bBadBlock = (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == CYLINDER)
+    if (bBadCylinder == true) || (bBadBlock == true) then
+      // warn user palying out of turn
+      throw new HintException(errPos + " ... Please wait for your turn")
     end if
-  end checkTurn
-  
+  end checkTurnValidAndThrow
+
+  def checkTurnValid(model: FlicFlacGameModel): Boolean =
+    val bBadCylinder = (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == BLOCK)
+    val bBadBlock = (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == CYLINDER)
+    if (bBadCylinder == true) || (bBadBlock == true) then
+      // warn user invalid event, playing out of turn
+      return false
+    else
+      // valid event
+      return true
+    end if
+  end checkTurnValid
+
   def increaseScaleFactor(oldSF: Double): Double =
     val newSF =
       if oldSF >= 0.9 then 1.0
@@ -420,138 +494,84 @@ object SceneGame extends Scene[FlicFlacStartupData, FlicFlacGameModel, FlicFlacV
   ): Outcome[SceneUpdateFragment] =
 
     val dSF = hexBoard4.scalingFactor
-    val sFactor = ((10 * dSF).toInt).toString()
 
-    val textDiag = TextBox(sFactor + " " + dMsg, 200, 40) // FIXME 200,40 just some convenient numbers for text box size
-      .withColor(RGBA.Black)
-      .withFontSize(Pixels(20))
-      .moveTo(0, 0)
+    val x10 = (70 * dSF).toInt
+    val y10 = (1033 * dSF).toInt
+    val x11 = (70 * dSF).toInt
+    val y11 = (1066 * dSF).toInt
 
-    val cylinderName =
-      if model.ourPieceType == CYLINDER then model.ourName
-      else model.oppoName
-      end if
-    end cylinderName
-    val blockName =
-      if model.ourPieceType == CYLINDER then model.oppoName
-      else model.ourName
-      end if
-    end blockName
-
-    val scorePanel = 
-      if (bBlinkOn == true ) && (model.gameState == GameState.CYLINDER_TURN) then
-        GameAssets.gScorePanelBlinkCylinder(1.0).moveTo(0, 130)
-      else if (bBlinkOn == true ) && (model.gameState == GameState.BLOCK_TURN) then
-        GameAssets.gScorePanelBlinkBlock(1.0).moveTo(0, 130)
-      else
-        GameAssets.gScorePanelBlinkOff(1.0).moveTo(0, 130)
-      end if
- 
-    val cylinderPlayer =
-      TextBox((cylinderName).toString(), 220, 50)
+    val zoomLabel =
+      TextBox("Zoom", 100, 70).alignCenter
         .withColor(RGBA.Black)
-        .withFontSize(Pixels(40))
-        .moveTo(14, 190)
-
-    val blockPlayer =
-      TextBox((blockName).toString(), 220, 50)
+        .withFontSize(Pixels(30))
+        .scaleBy(dSF, dSF)
+        .moveTo(x10, y10)
+    val sFactor = ((100 * dSF).toInt).toString()
+    val zoomPercentage =
+      TextBox(sFactor + "%", 100, 70).alignCenter
         .withColor(RGBA.Black)
-        .withFontSize(Pixels(40))
-        .moveTo(14, 370)
-
-    val cylinderScoreX = coordXFromScore(model.gameScore._1)
-    val blockScoreX = coordXFromScore(model.gameScore._2)
-
-    val cylinderScore =
-      TextBox((model.gameScore._1).toString(), 150, 300)
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(100))
-        .moveTo(cylinderScoreX, 250)
-    val blockScore =
-      TextBox((model.gameScore._2).toString(), 150, 300)
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(100))
-        .moveTo(blockScoreX, 430)
-    val param1 = 
-      TextBox((model.winningScore).toString(),100,70)
-        .bold
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(60))
-        .moveTo(140, 670)
-    val param2 = 
-      TextBox((model.turnTimer.iTotalTurnTime).toString(),100,70)
-        .bold
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(60))
-        .moveTo(140, 670+85)
-    val param3 = 
-      TextBox((model.turnTimer.iCaptorsTurnTime).toString(),100,70)
-        .bold
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(60))
-        .moveTo(140, 670+170)
-    val param4 = 
-      TextBox((model.randEventFreq).toString(),100,70)
-        .bold
-        .withColor(RGBA.Black)
-        .withFontSize(Pixels(60))
-        .moveTo(140, 670+255)
+        .withFontSize(Pixels(30))
+        .scaleBy(dSF, dSF)
+        .moveTo(x11, y11)
 
     val pB = hexBoard4.pBase // ................... for HighLighter
 
-    val width = GameAssets.GameSceneDimensions.width
-    val height = GameAssets.GameSceneDimensions.height
+    val width = GameAssets.GetGameSceneDimensions(model.boardSize).width
+    val height = GameAssets.GetGameSceneDimensions(model.boardSize).height
 
-    val iHeight = (math.round(GameAssets.GameSceneDimensions.height * dSF)).toInt
+    val iHeight = (math.round(GameAssets.GetGameSceneDimensions(model.boardSize).height * dSF)).toInt
     val iLeftWidth = hexBoard4.pBase.x
-    val iRightWidth = (math.round(GameAssets.GameSceneDimensions.right - hexBoard4.pBase.x) * dSF).toInt
+    val iRightWidth = (math.round(GameAssets.GetGameSceneDimensions(model.boardSize).right - hexBoard4.pBase.x) * dSF).toInt
     val rLeft = Rectangle(0, 0, iLeftWidth, iHeight)
     val rRight = Rectangle(Point(iLeftWidth, 0), Size(iRightWidth, iHeight))
     val rCorners = Rectangle(Point(iLeftWidth, 0), Size(iRightWidth + hexBoard4.pBase.x, iHeight))
 
-    val colorOurNameTitle = 
-      if (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == CYLINDER) then 
-        RGBA.Magenta
-      else if (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == BLOCK) then 
-        RGBA.Magenta
-      else
-        RGBA.Black
+    val colorOurNameTitle =
+      if (model.gameState == GameState.CYLINDER_TURN) && (model.ourPieceType == CYLINDER) then RGBA.Magenta
+      else if (model.gameState == GameState.BLOCK_TURN) && (model.ourPieceType == BLOCK) then RGBA.Magenta
+      else RGBA.Black
 
-    val youAre = 
-      TextBox(model.ourName +"    ", iRightWidth, 50)  // adding 4 spaces to get a simple central alignment
-        .bold
-        .alignCenter
+    val youAre =
+      TextBox(model.ourName + "    ", iRightWidth, 50) // adding 4 spaces to get a simple central alignment
+        .bold.alignCenter
         .withColor(colorOurNameTitle)
         .withFontSize(Pixels(40))
         .moveTo(iLeftWidth, 2)
 
+    val diag =
+      TextBox(dMsg, 200, 30)
+        .withColor(RGBA.Black)
+        .withFontSize(Pixels(20))
+        .moveTo(0, 0)
+
+// format: off
+
     Outcome(
-        SceneUpdateFragment(LayerKeys.Background -> Layer.empty)        
-        |+| SceneUpdateFragment(LayerKeys.Background -> Layer.Content(Shape.Box(Rectangle(0, 0, width, height), Fill.Color(RGBA.Black))))
+      SceneUpdateFragment(LayerKeys.Background -> Layer.empty)
         |+| SceneUpdateFragment(LayerKeys.Background -> Layer.Content(Shape.Box(rLeft, Fill.Color(RGBA.White))))
         |+| SceneUpdateFragment(LayerKeys.Background -> Layer.Content(Shape.Box(rRight, Fill.Color(RGBA.White))))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(GameAssets.cornerLayers(rCorners, 1.0, RGBA.Magenta)))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(Shape.Box(Rectangle(0, 0, 24, 24), Fill.Color(RGBA.Magenta))))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(textDiag))
+
+// The diag fragment shows the diagnostic dMsg pointer handler events in the top LH corner
+//      |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(diag))
+
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.turnButton.draw))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(youAre))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(scorePanel))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(cylinderPlayer))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(blockPlayer))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(cylinderScore))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(blockScore))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(GameAssets.gParamsPanel(1.0).moveTo(0, 590)))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(Batch(param1, param2, param3, param4)))
+        |+| SceneUpdateFragment(LayerKeys.Middleground -> scorePanel.show(model, bBlinkOn, dSF))
+        |+| SceneUpdateFragment(LayerKeys.Middleground -> paramsPanel.show(model, dSF))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.plusButton.draw))
+        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(zoomLabel))
+        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(zoomPercentage))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.minusButton.draw))
-        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.newGameButton.draw))      
+        |+| SceneUpdateFragment(LayerKeys.Middleground -> Layer.Content(viewModel.newGameButton.draw))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> TurnTimer.show(model))
         |+| SceneUpdateFragment(LayerKeys.Middleground -> hexBoard4.paint(model, dSF))
         |+| SceneUpdateFragment(LayerKeys.ForegroundHighL -> model.highLighter.paint(hexBoard4, dSF, pB))
         |+| SceneUpdateFragment(LayerKeys.ForegroundSpots -> model.possibleMoveSpots.paint(model))
-        |+| SceneUpdateFragment(LayerKeys.ForegroundPieces -> model.pieces.paint(model, dSF, bBlinkOn, viewModel.optDragPos))
-
+        |+| SceneUpdateFragment(LayerKeys.ForegroundPieces -> model.pieces.paint(model, dSF, bBlinkOn, viewModel.optDragPos)
+        )
     )
+// format: on
   end present
 
   def coordXFromScore(score: Int): Int =
@@ -578,10 +598,7 @@ final case class GameSceneViewModel(
     yield this.copy(newGameButton = bn1, plusButton = bn2, minusButton = bn3, turnButton = bn4)
 
   def changeButtonBoundaries(model: FlicFlacGameModel, gvp: GameViewport): GameSceneViewModel =
-    // val dSF = model.scalingFactor
-    // scribe.debug("@@@ dSF:" + dSF)
-    // Current implementation does not require buttons to scale so we override the scaling factor to 1.0
-    val dSF = 1.0
+    val dSF = hexBoard4.scalingFactor
 
     val newNewGameButton =
       Button(
@@ -626,15 +643,18 @@ end GameSceneViewModel
 
 object GameSceneViewModel:
   val turnBounds = Rectangle(10, 30, 90, 80)
-  val plusBounds = Rectangle(10, 1020, 90, 80)
-  val minusBounds = Rectangle(160, 1020, 90, 80)
-  val newGameBounds = Rectangle(10, 1120, 240, 80)
+  val plusBounds = Rectangle(5, 1025, 90, 80)
+  val minusBounds = Rectangle(170, 1025, 90, 80)
+  val newGameBounds = Rectangle(5, 1125, 240, 80)
 
   val initial: GameSceneViewModel =
     GameSceneViewModel(
       None, // ... we have no last position of the pointer recorded
 
-      GameViewport(GameAssets.GameSceneDimensions.width, GameAssets.GameSceneDimensions.height),
+      GameViewport(
+        GameAssets.GetGameSceneDimensions(8).width,
+        GameAssets.GetGameSceneDimensions(8).height
+      ), // default model.size is 8
       Button(
         buttonAssets = GameAssets.buttonNewGameAssets(1.0),
         bounds = newGameBounds,
@@ -658,6 +678,37 @@ object GameSceneViewModel:
     )
 end GameSceneViewModel
 
+def constructResults(model: FlicFlacGameModel): (String, String) =
+  val cylinderScore = model.gameScore._1
+  val blockScore = model.gameScore._2
+  val (cylinderName, blockName) =
+    if model.ourPieceType == CYLINDER then
+      // we are cylinder
+      (model.ourName, model.oppoName)
+    else
+      // we are block
+      (model.oppoName, model.ourName)
+    end if
+  end val
+  val results: (String, String) =
+    if (cylinderScore >= model.winningScore) && (cylinderScore >= blockScore + 2) then
+      (
+        "*** " + cylinderName + " WINS ***",
+        "Scores: " + cylinderName + ":" + cylinderScore + " " + blockName + ":" + blockScore + " ..."
+      )
+    else if (blockScore >= model.winningScore) && (blockScore >= cylinderScore + 2) then
+      (
+        "*** " + blockName + " WINS ***",
+        "Scores: " + blockName + ":" + blockScore + " " + cylinderName + ":" + cylinderScore + " ..."
+      )
+    else ("???", "???")
+    end if
+  end results
+  results
+end constructResults
+
 object FlicFlacGameUpdate:
   case class Info(ffgm: FlicFlacGameModel) extends GlobalEvent
 end FlicFlacGameUpdate
+
+class HintException(s: String) extends Exception(s) {}

@@ -6,9 +6,10 @@ import scribe.*
 
 // the original extensions to Button and Pointers was kindly provided by Dave Smith
 
-/** This is a workaround to show a way to make buttons support simple pointer events. It is a simplified version of the
-  * standard Button update function.
-  */
+/* This is a workaround to show a way to make buttons support simple pointer events.
+ * It is a simplified version of the standard Button update
+ * function.
+ */
 extension (b: Button)
   def updateFromPointers(p: Pointers): Outcome[Button] =
     val configLoggerHere = "@@@ updateFromPointers START".logger

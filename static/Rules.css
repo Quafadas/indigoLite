@@ -151,6 +151,18 @@ table, th, tr, td {
   border: 3px solid white !important;
 }
 
+.configRadio {
+  margin-left: 0;
+  accent-color:black;
+}
+
+.configRadioLabel {
+  margin-right: 0;
+  border-right: 0;
+  padding-right: 0;
+  color:black;
+}
+
   
 
 

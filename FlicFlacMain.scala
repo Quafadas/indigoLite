@@ -25,10 +25,13 @@ object LayerKeys:
   val ForegroundSpots: BindingKey = BindingKey("ForegroundSpots")
   val ForegroundPieces: BindingKey = BindingKey("ForegroundPieces")
   val Overlay: BindingKey = BindingKey("Overlay")
+end LayerKeys
 
-@JSExportTopLevel("IndigoGame")
+// @JSExportTopLevel("IndigoGame")
 
 val hexBoard4 = new HexBoard4()
+val scorePanel = new ScorePanel()
+val paramsPanel = new ParamsPanel()
 
 case class FlicFlacGame(
     tyrianSubSystem: TyrianSubSystem[IO, Int, FlicFlacGameModel]
@@ -56,8 +59,7 @@ case class FlicFlacGame(
 
   def initialScene(flicFlacBootData: FlicFlacBootData): Option[SceneName] =
     scribe.debug("@@@ FlicFlacMain-initialScene()")
-    //Some(SceneParams.name)
-    None
+    Some(SceneParams.name)
   end initialScene
 
   def scenes(
@@ -99,8 +101,8 @@ case class FlicFlacGame(
     scribe.debug("@@@ FlicFlacMain-initialModel()")
     val cachedParamsOrNew = FlicFlacPlayerParams.getParams(flicFlacStartupData)
     scribe.debug(s"@@@ PlayerParams: $cachedParamsOrNew")
-    val newTurnTime = cachedParamsOrNew.playPams4_TurnTime
-    val newCaptorsTime = cachedParamsOrNew.playPams5_CaptorsTime
+    val newTurnTime = cachedParamsOrNew.playPams6_TurnTime
+    val newCaptorsTime = cachedParamsOrNew.playPams7_CaptorsTime
     val newTT = TurnTimer(newTurnTime, newCaptorsTime)
     val cachedGameOrNew = FlicFlacGameModel.retrieve(flicFlacStartupData)
     val updatedGame = cachedGameOrNew.copy(turnTimer = newTT)
@@ -172,17 +174,17 @@ case class FlicFlacGame(
       context: FrameContext[FlicFlacStartupData],
       flicFlacGameModel: FlicFlacGameModel,
       flicFlacViewModel: FlicFlacViewModel
-  ): Outcome[SceneUpdateFragment] =   // this technique supplied by DaveSmith
+  ): Outcome[SceneUpdateFragment] = // this technique supplied by DaveSmith
     Outcome(
       SceneUpdateFragment(
         LayerKeys.Background -> Layer.empty, // Initialising keys early (root level), in the desired order
         LayerKeys.Middleground -> Layer.empty,
-        LayerKeys.ForegroundHighL -> Layer.empty,        
+        LayerKeys.ForegroundHighL -> Layer.empty,
         LayerKeys.ForegroundSpots -> Layer.empty,
         LayerKeys.ForegroundPieces -> Layer.empty,
         LayerKeys.Overlay -> Layer.empty
       )
-  )
+    )
 
   scribe.debug("@@@ FlicFlacMain class FlicFlacGame Finish")
 end FlicFlacGame
@@ -222,10 +224,12 @@ case object ButtonMinusEvent extends GlobalEvent
 
 //ButtonTurnEvent needs to be an object so that it can be filtered and processed in the subsystem(s)
 //case object ButtonTurnEvent extends GlobalEvent
-object ButtonTurnEvent :
+object ButtonTurnEvent:
   case class Occurence() extends GlobalEvent
 end ButtonTurnEvent
 
+case object StartLiveGame extends GlobalEvent
+
 object Freeze:
-  case class PanelContent(panelType: PanelType, msg: String) extends GlobalEvent
+  case class PanelContent(panelType: PanelType, content: (String, String)) extends GlobalEvent
 end Freeze
